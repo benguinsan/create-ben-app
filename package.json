@@ -1,0 +1,32 @@
+{
+  "name": "create-my-custom-app",
+  "description": "A custom starter templates",
+  "version": "0.0.0",
+  "author": "BenguinSan <nguyenthanhphuc311203@gmail.com>",
+  "scripts": {
+    "build": "tsup",
+    "clean": "rm -rf dist",
+    "dev": "tsup --watch",
+    "typecheck": "tsc --noEmit",
+    "start": "node dist/index.js",
+    "prepublishOnly": "npm run clean && npm run build"
+  },
+  "bin": "dist/index.js",
+  "files": [
+    "dist",
+    "templates"
+  ],
+  "devDependencies": {
+    "@types/commander": "^2.12.0",
+    "@types/node": "^17.0.45",
+    "tsup": "^8.5.1",
+    "typescript": "^4.9.5"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "@clack/prompts": "^1.7.0",
+    "commander": "^15.0.0",
+    "create-create-app": "^7.3.0",
+    "picocolors": "^1.1.1"
+  }
+}
