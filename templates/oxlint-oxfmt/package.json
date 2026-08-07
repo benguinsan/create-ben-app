@@ -1,0 +1,13 @@
+{
+  "scripts": {
+    "lint": "ultracite check",
+    "format": "ultracite fix"
+  },
+  "devDependencies": {
+    "eslint": null,
+    "eslint-config-next": null,
+    "oxfmt": "^0.62.0",
+    "oxlint": "^1.77.0",
+    "ultracite": "^7.10.1"
+  }
+}

@@ -24,7 +24,7 @@ const TEXT_EXTENSIONS = new Set([
 
 const SKIP_DIR_NAMES = new Set([".git", ".next", "node_modules"]);
 
-export type FeatureId = "clerk-auth" | "docker";
+export type FeatureId = "clerk-auth" | "oxlint-oxfmt" | "docker";
 
 export type ScaffoldOptions = {
   projectName: string;
@@ -42,10 +42,12 @@ type PackageJson = {
   private?: boolean;
   engines?: Record<string, string>;
   scripts?: Record<string, string>;
-  dependencies?: Record<string, string>;
-  devDependencies?: Record<string, string>;
+  dependencies?: Record<string, string | null>;
+  devDependencies?: Record<string, string | null>;
   [key: string]: unknown;
 };
+
+const SCAFFOLD_RM_FILE = ".scaffold-rm";
 
 const getPackageRoot = (): string => path.resolve(__dirname, "..");
 
@@ -107,13 +109,33 @@ const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null && !Array.isArray(value);
 
 const mergeStringRecords = (
-  base: Record<string, string> | undefined,
-  overlay: Record<string, string> | undefined,
+  base: Record<string, string | null> | undefined,
+  overlay: Record<string, string | null> | undefined,
 ): Record<string, string> | undefined => {
   if (!base && !overlay) {
     return undefined;
   }
-  return { ...(base ?? {}), ...(overlay ?? {}) };
+
+  const merged: Record<string, string> = {};
+  for (const [key, value] of Object.entries(base ?? {})) {
+    if (value !== null) {
+      merged[key] = value;
+    }
+  }
+
+  if (!overlay) {
+    return merged;
+  }
+
+  for (const [key, value] of Object.entries(overlay)) {
+    if (value === null) {
+      delete merged[key];
+    } else {
+      merged[key] = value;
+    }
+  }
+
+  return merged;
 };
 
 const mergePackageJson = (baseRaw: string, overlayRaw: string): string => {
@@ -199,6 +221,11 @@ const copyDir = async (
       continue;
     }
 
+    // Control file for post-copy deletions — never copy into the generated app
+    if (entry.name === SCAFFOLD_RM_FILE) {
+      continue;
+    }
+
     if (
       options.mergePackageJson &&
       entry.name === "package.json" &&
@@ -223,6 +250,53 @@ const copyDir = async (
   }
 };
 
+const isSafeRelativePath = (relativePath: string): boolean => {
+  if (!relativePath || path.isAbsolute(relativePath)) {
+    return false;
+  }
+  const normalized = path.normalize(relativePath);
+  if (normalized === ".." || normalized.startsWith(`..${path.sep}`)) {
+    return false;
+  }
+  return true;
+};
+
+const applyScaffoldRemovals = async (
+  featureDir: string,
+  targetDir: string,
+): Promise<void> => {
+  const rmListPath = path.join(featureDir, SCAFFOLD_RM_FILE);
+  if (!(await pathExists(rmListPath))) {
+    return;
+  }
+
+  const raw = await fs.readFile(rmListPath, "utf8");
+  const lines = raw
+    .split("\n")
+    .map((line) => line.trim())
+    .filter((line) => line.length > 0 && !line.startsWith("#"));
+
+  for (const relativePath of lines) {
+    if (!isSafeRelativePath(relativePath)) {
+      continue;
+    }
+
+    const targetPath = path.join(targetDir, relativePath);
+    try {
+      await fs.rm(targetPath, { force: true, recursive: true });
+    } catch {
+      // Ignore missing or already-removed paths
+    }
+  }
+
+  // Do not leave the control file in the generated app
+  try {
+    await fs.rm(path.join(targetDir, SCAFFOLD_RM_FILE), { force: true });
+  } catch {
+    // ignore
+  }
+};
+
 const overlayFeature = async (
   featureId: FeatureId,
   targetDir: string,
@@ -239,6 +313,7 @@ const overlayFeature = async (
   await copyDir(featureDir, targetDir, placeholders, {
     mergePackageJson: true,
   });
+  await applyScaffoldRemovals(featureDir, targetDir);
 };
 
 export const scaffoldProject = async (

@@ -10,8 +10,9 @@ const DEFAULT_APP_NAME = "my-app";
 const DEFAULT_DESCRIPTION = "A project created with create-my-custom-app";
 
 type AuthChoice = "clerk" | "none";
+type LinterChoice = "oxlint" | "eslint";
 
-const FLAG_VALUE_SKIP = new Set(["--auth"]);
+const FLAG_VALUE_SKIP = new Set(["--auth", "--linter"]);
 
 const getPositionalName = (): string | undefined => {
   const args = process.argv.slice(2);
@@ -23,7 +24,7 @@ const getPositionalName = (): string | undefined => {
       i += 1; // skip value
       continue;
     }
-    if (arg.startsWith("--auth=")) {
+    if (arg.startsWith("--auth=") || arg.startsWith("--linter=")) {
       continue;
     }
     if (arg === "--docker" || arg === "--no-docker") {
@@ -49,6 +50,27 @@ const getAuthFlag = (): AuthChoice | undefined => {
       }
       console.error(
         pc.red(`Invalid --auth value ${pc.bold(String(value))}. Use clerk or none.`),
+      );
+      process.exit(1);
+    }
+  }
+  return undefined;
+};
+
+const getLinterFlag = (): LinterChoice | undefined => {
+  const args = process.argv.slice(2);
+  for (let i = 0; i < args.length; i += 1) {
+    const arg = args[i];
+    if (arg === "--linter" || arg.startsWith("--linter=")) {
+      const value =
+        arg === "--linter" ? args[i + 1] : arg.slice("--linter=".length);
+      if (value === "oxlint" || value === "eslint") {
+        return value;
+      }
+      console.error(
+        pc.red(
+          `Invalid --linter value ${pc.bold(String(value))}. Use oxlint or eslint.`,
+        ),
       );
       process.exit(1);
     }
@@ -153,6 +175,43 @@ const resolveAuthChoice = async (): Promise<AuthChoice> => {
   return answer;
 };
 
+const resolveLinterChoice = async (): Promise<LinterChoice> => {
+  const fromFlag = getLinterFlag();
+  if (fromFlag !== undefined) {
+    p.log.info(pc.dim(`Linter: ${fromFlag} (--linter)`));
+    return fromFlag;
+  }
+
+  if (!process.stdin.isTTY) {
+    p.log.info(pc.dim("Non-interactive session: Linter set to ESLint (CNA default)."));
+    return "eslint";
+  }
+
+  const answer = await p.select({
+    message: "Linter / formatter?",
+    options: [
+      {
+        value: "oxlint" as const,
+        label: "Oxlint + Oxfmt",
+        hint: "Ultracite presets; replaces ESLint",
+      },
+      {
+        value: "eslint" as const,
+        label: "ESLint (CNA default)",
+        hint: "Keep create-next-app linter",
+      },
+    ],
+    initialValue: "eslint" as const,
+  });
+
+  if (p.isCancel(answer)) {
+    p.cancel("Operation cancelled.");
+    process.exit(1);
+  }
+
+  return answer;
+};
+
 const resolveDockerChoice = async (): Promise<boolean> => {
   const fromFlag = getDockerFlag();
   if (fromFlag !== undefined) {
@@ -178,10 +237,17 @@ const resolveDockerChoice = async (): Promise<boolean> => {
   return answer;
 };
 
-const resolveFeatures = (auth: AuthChoice, useDocker: boolean): FeatureId[] => {
+const resolveFeatures = (
+  auth: AuthChoice,
+  linter: LinterChoice,
+  useDocker: boolean,
+): FeatureId[] => {
   const features: FeatureId[] = [];
   if (auth === "clerk") {
     features.push("clerk-auth");
+  }
+  if (linter === "oxlint") {
+    features.push("oxlint-oxfmt");
   }
   if (useDocker) {
     features.push("docker");
@@ -192,6 +258,7 @@ const resolveFeatures = (auth: AuthChoice, useDocker: boolean): FeatureId[] => {
 const nextStepsFor = (
   projectName: string,
   auth: AuthChoice,
+  linter: LinterChoice,
   useDocker: boolean,
 ): string => {
   const lines: string[] = [`cd ${projectName}`];
@@ -209,6 +276,15 @@ const nextStepsFor = (
     lines.push(
       "",
       "Optional: enable Magic Links, MFA, Social, Passkeys in the Clerk Dashboard.",
+    );
+  }
+
+  if (linter === "oxlint") {
+    lines.push(
+      "",
+      "Lint / format (Oxlint + Oxfmt via Ultracite; ESLint was replaced):",
+      "  npm run lint",
+      "  npm run format",
     );
   }
 
@@ -230,8 +306,9 @@ const main = async (): Promise<void> => {
 
   const projectName = await resolveProjectName();
   const auth = await resolveAuthChoice();
+  const linter = await resolveLinterChoice();
   const useDocker = await resolveDockerChoice();
-  const features = resolveFeatures(auth, useDocker);
+  const features = resolveFeatures(auth, linter, useDocker);
   const targetDir = path.resolve(process.cwd(), projectName);
 
   const spinner = p.spinner();
@@ -250,7 +327,7 @@ const main = async (): Promise<void> => {
     throw error;
   }
 
-  p.note(nextStepsFor(projectName, auth, useDocker), "Next steps");
+  p.note(nextStepsFor(projectName, auth, linter, useDocker), "Next steps");
 
   p.outro(pc.green(`Done! Your app is ready in ./${projectName}`));
 };
