@@ -37,17 +37,45 @@ This version has breaking changes — APIs, conventions, and file structure may 
 npx create-my-custom-app <project-name>
         │
         ▼
-  src/cli.ts
-        │  @clack/prompts (questions)
+  src/index.ts
+        │  @clack/prompts (questions — optional features)
         │  picocolors (colored output)
-        │  ora (spinners while copying / installing)
-        │  create-create-app (template copy + placeholders)
+        │  ora / Clack spinner (copy / install)
+        │  copy + {{placeholders}}
         ▼
-  templates/<variant>/   ← your custom structure
-        │  copy + substitute {{placeholders}}
+  templates/default/     ← always copied (primitive create-next-app only)
+  templates/<feature>/   ← overlay ONLY if user selects it (A flat: 1 folder = 1 tech)
+        │  merge + substitute {{placeholders}}
         ▼
   ./<project-name>/      ← runnable Next.js app
 ```
+
+### Template layout (A flat)
+
+```text
+templates/
+  default/           ← always copied — primitive Next.js ≈ `npx create-next-app@latest`
+  clerk-auth/        ← Clerk only (interactive opt-in, skip/none = no auth)
+  drizzle-neon/      ← Drizzle + Neon only (interactive opt-in)
+  t3-env/            ← T3 Env (interactive opt-in)
+  oxlint-oxfmt/      ← Oxlint + Oxfmt / Ultracite (interactive opt-in; replaces CNA linter if chosen)
+  rhf-zod/           ← React Hook Form + Zod (interactive opt-in)
+  sentry/            ← Sentry (+ Spotlight) (interactive opt-in)
+  posthog/           ← PostHog only (interactive opt-in)
+  arcjet/            ← Arcjet only (interactive opt-in)
+  coderabbit/        ← CodeRabbit only (interactive opt-in)
+  # further DX/SEO/theme modules follow the same rule: not in default unless CNA ships them
+```
+
+Rules:
+
+- **`templates/default` = primitive `create-next-app@latest` only.** Match what CNA scaffolds (App Router, TypeScript, Tailwind, import alias `@/*`, and whatever linter CNA chooses by default — typically ESLint). Do **not** bake Oxlint, Oxfmt, Ultracite, T3 Env, RHF, Zod, custom theme tokens, extra SEO (`sitemap`/`robots`/JSON-LD beyond CNA), Lefthook, Commitlint, or other add-ons into `default`.
+- Anything **outside** stock `create-next-app` is an **optional feature folder** and is copied only when the user selects it in interactive prompts (or via future CLI flags).
+- **1 folder = 1 tech** (except `default` = CNA primitive).
+- Always copy `templates/default` → `./<project-name>/`, then overlay selected feature folders.
+- Unselected features are never copied. Do **not** use `templates/features/` or full-combo variants.
+- Feature folders hold isolatable diffs for that tech only — not a second full Next.js app.
+- Prefer regenerating / syncing `default` from `create-next-app@latest` periodically so it stays aligned with upstream.
 
 ## Philosophy
 
@@ -64,13 +92,13 @@ npx create-my-custom-app <project-name>
 
 Priority order:
 
-1. **CLI** — `npx create-my-custom-app` entrypoint; interactive prompts with `@clack/prompts`; colored output with `picocolors`; progress with `ora`; template copy via `create-create-app`; `after` hooks and caveat messaging (`src/cli.ts`)
-2. **Custom template structure** under `templates/` (default and any variants) — folders, configs, and starter app layout
-3. Modular optional layers inside the template (auth, db, observability, security, code review)
-4. AI coding agent instructions for Claude Code, Codex, Cursor, OpenCode, Copilot, and more
-5. A free minimalist theme and strong Lighthouse defaults in the generated app
+1. **CLI** — `npx create-my-custom-app` entrypoint; interactive prompts with `@clack/prompts`; colored output with `picocolors`; progress with spinner; copy `default` + selected overlays; caveat messaging (`src/index.ts`)
+2. **`templates/default`** — keep it a **primitive Next.js** project equivalent to `npx create-next-app@latest` (no custom stack piled on)
+3. **Optional feature folders** under `templates/` — **A flat**, one tech per folder (`clerk-auth`, `oxlint-oxfmt`, `t3-env`, …); wired only via interactive selection
+4. Modular optional layers (auth, db, DX, observability, security, code review, SEO extras, theme)
+5. AI coding agent instructions and stronger DX/theme — **opt-in**, not default
 
-Do not overbuild the generated app before the CLI can reliably scaffold it. Features below are the **target catalog** for templates; exclude or gate them behind CLI options as the product is trimmed.
+Do not overbuild `default`. Features in the catalog below are **optional overlays**; never move them into `default` unless `create-next-app` itself ships them.
 
 Requirements: **Node.js 24+** and **npm**.
 
@@ -167,37 +195,44 @@ Keep these layers separate:
 
 ### This repo (CLI + templates)
 
-- **CLI**: `src/cli.ts` — entrypoint for `npx create-my-custom-app`
+- **CLI**: `src/index.ts` — entrypoint for `npx create-my-custom-app`
   - **Interactive prompts**: `@clack/prompts` (text, select, confirm, multiselect, cancel handling)
   - **Terminal styling**: `picocolors` for success/error/info/muted output
   - **Progress**: `ora` spinners for long steps (copy template, install deps, etc.)
-  - **Scaffold engine**: `create-create-app` for template root, copy, and `{{placeholder}}` substitution
+  - **Scaffold engine**: `create-create-app` (or equivalent) for copy + `{{placeholder}}` substitution; merge `default` then selected feature folders
   - Optional `after` hooks and caveat / next-steps messaging
-- **Templates**: `templates/<name>/` — **your custom starter structure**; copied when users run `npx create-my-custom-app`
+- **Templates (A flat)**: `templates/default/` = primitive `create-next-app@latest` (always); overlays only when selected (`clerk-auth`, `drizzle-neon`, `t3-env`, `oxlint-oxfmt`, `rhf-zod`, `sentry`, `posthog`, `arcjet`, `coderabbit`, …)
 - **Package surface**: `bin` → built CLI; `files` includes `dist` + `templates` so npx can scaffold offline from the published package
 - **CLI dependencies** (this package, not the generated app): `@clack/prompts`, `picocolors`, `ora`, `create-create-app`
 
 ### Inside a generated app (from templates)
 
-- **App (Website)**: App Router pages, layouts, minimal unstyled UI, theme tokens
+**Always present (`templates/default` — CNA primitive):**
+
+- **App**: Next.js App Router, TypeScript, Tailwind, `@/*` imports — as shipped by `create-next-app@latest`
+- **Lint (CNA default)**: whatever CNA installs (e.g. ESLint) until the user opts into a replacement like Oxlint
+
+**Only when selected interactively (feature folders):**
+
 - **Auth**: Clerk (server middleware, client components, protected routes)
 - **Database**: Drizzle schema + queries; Neon (PostgreSQL)
 - **Validation & forms**: Zod schemas + React Hook Form
-- **Config**: T3 Env, absolute imports (`@/`), VS Code debug/settings/tasks/extensions
+- **Config**: T3 Env, deeper VS Code debug/settings/tasks/extensions
 - **DX**: Oxlint (Ultracite), Oxfmt, Lefthook, lint-staged, Commitlint
 - **Observability & security**: Sentry (+ Spotlight local), PostHog, Arcjet
 - **Release & ops**: Dependabot, GitHub Actions (typecheck + lint on PRs), CodeRabbit
-- **SEO**: metadata, JSON-LD, Open Graph, `sitemap.xml`, `robots.txt`
+- **SEO extras**: JSON-LD, richer Open Graph, `sitemap.xml`, `robots.txt` beyond CNA defaults
+- **Theme**: free minimalist theme / Lighthouse-oriented tokens — opt-in, not in `default`
 
 Rules:
 
 - The CLI’s job is to **materialize** `templates/` into a new project — not to hide structure behind opaque generators.
-- Custom structure changes belong in `templates/` first; wire CLI prompts only when the user must choose a variant or feature.
-- Use `@clack/prompts` for all interactive questions; use `picocolors` for status text; use `ora` around async scaffold work. Prefer these over inventing a custom readline UI or relying on demo `create-create-app` `extra` prompts alone.
+- Keep `default` CNA-shaped; put every non-CNA concern in a feature folder and wire it through Clack selection.
+- Use `@clack/prompts` for all interactive questions; use `picocolors` for status text; use a spinner around async scaffold work. Prefer these over inventing a custom readline UI or relying on demo `create-create-app` `extra` prompts alone.
 - Handle cancel (`isCancel`) and exit cleanly with a clear message.
 - Generated apps must run with minimal code and clear boundaries.
-- Optional features must be easy to add or omit (CLI flags / template variants) without rewriting the core.
-- UI stays unstyled/minimal by default — a free minimalist theme is included; do not ship a heavy design system unless requested.
+- Optional features must be easy to add or omit (CLI flags / template overlays) without rewriting the core.
+- Do not ship a heavy design system in `default`.
 - Prefer composition over hidden magic; nothing important should live only inside the CLI binary.
 
 ---
@@ -214,50 +249,58 @@ Rules:
 
 Do not put `@clack/prompts`, `picocolors`, or `ora` in the **generated** app unless that app itself needs a CLI. They are dependencies of **create-my-custom-app** only.
 
-## Core (default) — generated app
+## Core (`templates/default`) — generated app
 
-- Next.js (App Router) — minify HTML/CSS, live reload, cache busting
-- TypeScript — strict mode + React 19 strict
+Primitive Next.js only — stay aligned with **`npx create-next-app@latest`**:
+
+- Next.js (App Router)
+- TypeScript
 - Tailwind CSS
-- Absolute imports with `@` prefix
-- T3 Env for type-safe env vars
-- React Hook Form + Zod
-- Free minimalist theme; maximize Lighthouse score
+- Import alias `@/*`
+- CNA default linter / tooling (do not replace with Oxlint/Oxfmt in `default`)
+- Whatever else CNA includes by default (e.g. `AGENTS.md` / `CLAUDE.md` if upstream adds them)
 
-## Auth
+**Not in `default`** (add only via interactive feature selection):
+
+- Oxlint, Oxfmt, Ultracite
+- T3 Env
+- React Hook Form + Zod
+- Custom minimalist theme / Lighthouse pack
+- Extra SEO modules (JSON-LD, `sitemap`/`robots` beyond CNA)
+- Lefthook, lint-staged, Commitlint
+- Clerk, Drizzle/Neon, Sentry, PostHog, Arcjet, CodeRabbit, Dependabot, GHA app CI
+
+## Auth (opt-in — `templates/clerk-auth`)
 
 - Clerk: Sign up, Sign in, Sign out, Forgot password, Reset password
 - Passwordless: Magic Links, Passkeys
 - MFA, Social Auth (Google, Facebook, Twitter, GitHub, Apple, and more)
 - User Impersonation
 
-## Data
+## Data (opt-in — `templates/drizzle-neon`)
 
 - DrizzleORM (PostgreSQL)
 - Neon for hosted / production database
 - Drizzle Studio + Drizzle Kit migrations
 
-## DX & git hygiene
+## DX & git hygiene (opt-in)
 
-- Oxlint with Ultracite preset (replaces ESLint)
-- Oxfmt (replaces Prettier)
-- Lefthook (replaces Husky) for git hooks
-- lint-staged on staged files
-- Commitlint for conventional commits
-- VS Code: Debug, Settings, Tasks, Extensions
+- Oxlint with Ultracite preset + Oxfmt (`templates/oxlint-oxfmt`) — may replace CNA ESLint when selected
+- Lefthook (prefer over Husky), lint-staged, Commitlint
+- Deeper VS Code: Debug, Settings, Tasks, Extensions
 
-## Observability & security
+## Observability & security (opt-in)
 
 - Sentry + Sentry Spotlight (local)
 - Arcjet (security / bot protection)
 - PostHog analytics
 
-## Release & maintenance
+## Release & maintenance (opt-in)
 
 - Dependabot (dependency updates)
 - GitHub Actions: typecheck + lint on pull requests
 - CodeRabbit for AI-powered code reviews on PRs
-- AI agent instruction files for Claude Code, Codex, Cursor, OpenCode, Copilot, and more
+- Extra AI agent instruction files beyond what CNA ships
 
 ## Out of scope for v1
 
@@ -269,12 +312,12 @@ Do not put `@clack/prompts`, `picocolors`, or `ora` in the **generated** app unl
 
 ## Do not use (unless explicitly requested)
 
-- ESLint / Prettier as primary lint/format (prefer Oxlint / Oxfmt)
-- Husky (prefer Lefthook)
+- Husky (prefer Lefthook when git-hooks feature is selected)
 - Supabase (use Neon + Drizzle + Clerk instead)
 - A separate backend framework outside Next.js App Router
 - Hidden proprietary wrappers that prevent editing generated code
 - Heavy UI kits that fight the unstyled/minimalist default
+- Putting Oxlint/T3 Env/RHF/etc. into `templates/default` “for convenience”
 
 ---
 
@@ -287,7 +330,7 @@ Drizzle schema and migrations are the source of truth for app data.
 - Explore data with Drizzle Studio
 - Keep generated types and schema modules in sync after every migration
 
-Do not hardcode connection strings in application code. Use T3 Env / `.env` patterns only.
+Do not hardcode connection strings in application code. Use T3 Env / `.env` patterns when the T3 Env (or env) feature is selected; otherwise follow that feature’s docs.
 
 When the data layer changes, update:
 
@@ -300,20 +343,35 @@ When the data layer changes, update:
 
 # 8. Feature selection
 
-Before implementing or expanding features, treat the catalog in section 1/6 as **optional modules**.
+Before implementing or expanding features, treat everything in section 6 **except Core (`templates/default`)** as **optional modules**.
 
-Ask (or infer from CLI flags) which features to include:
+Every optional feature is an independent **use / skip** choice. Ask via `@clack/prompts` (multiselect and/or per-feature confirm; or infer from CLI flags later). Selecting a feature copies its `templates/<id>/` overlay; skipping it means that folder is never copied.
 
-- Auth (Clerk)
-- Database (Drizzle + Neon)
-- Observability (Sentry, PostHog)
-- Security (Arcjet)
-- Code review (CodeRabbit)
-- DX tooling depth (Lefthook, Commitlint, etc.)
+| Prompt label | Choice | Template folder | Notes |
+|---|---|---|---|
+| Auth | Clerk **or** none | `clerk-auth` | Skip = no auth overlay |
+| Database | Drizzle + Neon **or** none | `drizzle-neon` | Skip = no DB overlay |
+| Env validation | T3 Env **or** none | `t3-env` | |
+| Forms | React Hook Form + Zod **or** none | `rhf-zod` | |
+| Linter / formatter | Oxlint + Oxfmt **or** keep CNA default | `oxlint-oxfmt` | When selected, replace CNA ESLint |
+| Error tracking | Sentry **or** none | `sentry` | Includes Spotlight for local |
+| Analytics | PostHog **or** none | `posthog` | |
+| Security | Arcjet **or** none | `arcjet` | |
+| Code review | CodeRabbit **or** none | `coderabbit` | |
 
-If the user does not choose, default to a lean core: Next.js + TypeScript + Tailwind + T3 Env + Oxlint/Oxfmt + absolute imports + SEO basics + agent instruction files.
+Add the same use/skip pattern when these folders exist:
 
-Do not install or scaffold features the user has excluded.
+| Prompt label | Choice | Template folder |
+|---|---|---|
+| Git hooks | Lefthook + lint-staged + Commitlint **or** none | e.g. `lefthook-commitlint` |
+| CI | GitHub Actions (typecheck + lint) **or** none | e.g. `github-actions` |
+| Dependency updates | Dependabot **or** none | e.g. `dependabot` |
+| SEO extras | JSON-LD / sitemap / robots beyond CNA **or** none | e.g. `seo-extras` |
+| Theme | Minimalist theme **or** none | e.g. `minimalist-theme` |
+
+If the user selects **nothing** optional, scaffold **only** `templates/default` — a primitive `create-next-app@latest`-equivalent project. Do **not** silently add Oxlint, T3 Env, or other non-CNA tooling.
+
+Do not install or scaffold features the user has excluded (skipped).
 
 Do not invent third-party services that are not in the approved stack.
 
@@ -330,8 +388,8 @@ Canonical create flow:
 1. User runs `npx create-my-custom-app <project-name>` (or local `node dist/cli.js <project-name>` while developing the CLI).
 2. CLI shows an intro via `@clack/prompts` and asks for feature/template choices (select, confirm, multiselect, text as needed). Style labels and summaries with `picocolors`.
 3. Start an `ora` spinner for long work (copying template, optional install).
-4. `create-create-app` (or equivalent scaffold step) copies the selected template from `templates/` into `./<project-name>/` and substitutes placeholders such as `{{name}}` / `{{description}}`.
-5. Optional feature modules are included or omitted based on Clack answers/flags (when wired).
+4. Scaffold step copies `templates/default` into `./<project-name>/`, overlays each selected `templates/<tech>/` folder, and substitutes placeholders such as `{{name}}` / `{{description}}`.
+5. Optional feature modules are included or omitted based on Clack answers/flags (when wired). Never invent nested `templates/features/`.
 6. Stop the spinner; print success with `picocolors`; `outro` / caveat prints next steps (e.g. `cd`, `npm install`, copy `.env.example`, migrate, `npm run dev`).
 7. On cancel or failure: stop spinner, print a clear error/cancel message, exit non-zero when appropriate.
 8. Generated project must boot with Node.js 24+ and npm without hidden steps.
@@ -362,16 +420,16 @@ Generated / template code must be:
 
 - append-friendly and easy to delete
 - free of secrets and real API keys
-- documented via `.env.example` and short README sections
-- consistent with absolute `@/` imports
-- strict TypeScript + React 19 strict mode compliant
+- documented via `.env.example` and short README sections **when that feature adds env vars**
+- consistent with CNA / `@/` imports in `default`; feature overlays must not break the CNA baseline
+- TypeScript + React versions aligned with current `create-next-app@latest`
 
 Do not:
 
 - commit `.env` with secrets
 - ship vendor lock-in that cannot be removed by deleting a folder
-- mix optional feature code into core paths without clear boundaries
-- duplicate the same config in multiple conflicting tools (e.g. ESLint + Oxlint both as primary)
+- mix optional feature code into `templates/default` without clear boundaries
+- leave both CNA ESLint and Oxlint as primary linters after an Oxlint overlay — the feature folder must cleanly replace or disable the CNA linter when selected
 
 When a feature is optional, its files should be isolatable (folder or clearly named module) so exclusion does not require rewriting the core app.
 
@@ -515,16 +573,18 @@ Rules:
 
 # 19. DX tooling and agent instructions
 
-Ship strong default DX:
+**Default (`templates/default`)** ships only what `create-next-app@latest` ships (including any upstream agent files).
+
+**Stronger DX is opt-in** via interactive feature selection / folders, for example:
 
 - Oxlint (Ultracite) + Oxfmt
 - Lefthook + lint-staged
 - Commitlint
-- VS Code Debug / Settings / Tasks / Extensions
-- SEO: metadata, JSON-LD, Open Graph, `sitemap.xml`, `robots.txt`
-- AI coding agent instruction files for Claude Code, Codex, Cursor, OpenCode, Copilot, and more
+- Extra VS Code Debug / Settings / Tasks / Extensions
+- SEO extras: JSON-LD, Open Graph polish, `sitemap.xml`, `robots.txt`
+- Additional AI coding agent instruction files for Claude Code, Codex, Cursor, OpenCode, Copilot, and more
 
-Agent instruction files in generated projects should point developers at the same philosophy: minimal code, editable everything, optional features clearly separated.
+Agent instruction files (when added) should point developers at the same philosophy: minimal `default`, editable everything, optional features clearly separated.
 
 ---
 
@@ -574,12 +634,17 @@ When in doubt:
 
 ### Generated app (after scaffold)
 
-- `npm run typecheck` — TypeScript, no emit
-- `npm run lint` — Oxlint (Ultracite)
-- `npm run format` / format check — Oxfmt
-- `npm run build` — Next.js production build when the change could affect the build
-- `npm run db:studio` / `npm run db:migrate` — Drizzle tooling when the data layer changed
+**Always (CNA primitive / `default`):**
+
+- `npm run build` — Next.js production build
 - `npm run dev` — Next.js dev server
 - `npm run start` — production server after `npm run build`
+- `npm run lint` — whatever script CNA generated (e.g. ESLint) until replaced by an opt-in DX feature
 
-After CLI or template structure work, always verify a fresh scaffold. After template app feature work, run typecheck + lint at minimum. Report exact command output; do not claim a check passed without running it.
+**Only when the matching feature was selected:**
+
+- `npm run typecheck` — if/when that script is added by a feature overlay
+- `npm run lint` / `format` — Oxlint / Oxfmt when `oxlint-oxfmt` (or similar) was selected
+- `npm run db:studio` / `npm run db:migrate` — when Drizzle/Neon was selected
+
+After CLI or template structure work, always verify a fresh scaffold of **default alone**. After feature overlays, run the checks that feature introduces. Report exact command output; do not claim a check passed without running it.

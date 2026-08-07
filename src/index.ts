@@ -1,15 +1,54 @@
 #!/usr/bin/env node
+import path from "node:path";
 import * as p from "@clack/prompts";
 import pc from "picocolors";
+import { type FeatureId, scaffoldProject } from "./scaffold";
 import { validateProjectName } from "./validate-name";
 
-const PACKAGE_NAME = "create-ben-app";
+const PACKAGE_NAME = "create-my-custom-app";
 const DEFAULT_APP_NAME = "my-app";
+const DEFAULT_DESCRIPTION = "A project created with create-my-custom-app";
+
+type AuthChoice = "clerk" | "none";
 
 const getPositionalName = (): string | undefined => {
-  // Skip node binary + script path; take first non-flag arg
-  const args = process.argv.slice(2).filter((arg) => !arg.startsWith("-"));
-  return args[0];
+  const args = process.argv.slice(2);
+  const positionals: string[] = [];
+
+  for (let i = 0; i < args.length; i += 1) {
+    const arg = args[i];
+    if (arg === "--auth") {
+      i += 1; // skip value
+      continue;
+    }
+    if (arg.startsWith("--auth=")) {
+      continue;
+    }
+    if (arg.startsWith("-")) {
+      continue;
+    }
+    positionals.push(arg);
+  }
+
+  return positionals[0];
+};
+
+const getAuthFlag = (): AuthChoice | undefined => {
+  const args = process.argv.slice(2);
+  for (let i = 0; i < args.length; i += 1) {
+    const arg = args[i];
+    if (arg === "--auth" || arg.startsWith("--auth=")) {
+      const value = arg === "--auth" ? args[i + 1] : arg.slice("--auth=".length);
+      if (value === "clerk" || value === "none") {
+        return value;
+      }
+      console.error(
+        pc.red(`Invalid --auth value ${pc.bold(String(value))}. Use clerk or none.`),
+      );
+      process.exit(1);
+    }
+  }
+  return undefined;
 };
 
 const resolveProjectName = async (): Promise<string> => {
@@ -53,17 +92,93 @@ const resolveProjectName = async (): Promise<string> => {
   return answer.trim() || DEFAULT_APP_NAME;
 };
 
+const resolveAuthChoice = async (): Promise<AuthChoice> => {
+  const fromFlag = getAuthFlag();
+  if (fromFlag !== undefined) {
+    p.log.info(pc.dim(`Auth: ${fromFlag} (--auth)`));
+    return fromFlag;
+  }
+
+  if (!process.stdin.isTTY) {
+    p.log.info(pc.dim("Non-interactive session: Auth set to None."));
+    return "none";
+  }
+
+  const answer = await p.select({
+    message: "Add authentication?",
+    options: [
+      {
+        value: "clerk" as const,
+        label: "Clerk",
+        hint: "Sign in / Sign up / protected routes",
+      },
+      {
+        value: "none" as const,
+        label: "None",
+        hint: "Skip auth overlay",
+      },
+    ],
+    initialValue: "none" as const,
+  });
+
+  if (p.isCancel(answer)) {
+    p.cancel("Operation cancelled.");
+    process.exit(1);
+  }
+
+  return answer;
+};
+
+const featuresForAuth = (auth: AuthChoice): FeatureId[] => {
+  if (auth === "clerk") {
+    return ["clerk-auth"];
+  }
+  return [];
+};
+
+const nextStepsFor = (projectName: string, auth: AuthChoice): string => {
+  if (auth === "clerk") {
+    return [
+      `cd ${projectName}`,
+      "cp .env.example .env.local",
+      "Add Clerk keys from https://dashboard.clerk.com",
+      "npm install",
+      "npm run dev",
+      "",
+      "Optional: enable Magic Links, MFA, Social, Passkeys in the Clerk Dashboard.",
+    ].join("\n");
+  }
+
+  return [`cd ${projectName}`, "npm install", "npm run dev"].join("\n");
+};
+
 const main = async (): Promise<void> => {
   p.intro(pc.bgCyan(pc.black(` ${PACKAGE_NAME} `)));
 
   const projectName = await resolveProjectName();
+  const auth = await resolveAuthChoice();
+  const features = featuresForAuth(auth);
+  const targetDir = path.resolve(process.cwd(), projectName);
 
-  p.note(pc.bold(projectName), "Project name");
-  p.outro(
-    pc.green(
-      `Next: scaffold templates → ./${projectName} (not wired yet)`,
-    ),
-  );
+  const spinner = p.spinner();
+  spinner.start(`Scaffolding ${pc.cyan(projectName)}…`);
+
+  try {
+    await scaffoldProject({
+      projectName,
+      description: DEFAULT_DESCRIPTION,
+      targetDir,
+      features,
+    });
+    spinner.stop(`Created ${pc.green(`./${projectName}`)}`);
+  } catch (error) {
+    spinner.stop(pc.red("Scaffold failed"));
+    throw error;
+  }
+
+  p.note(nextStepsFor(projectName, auth), "Next steps");
+
+  p.outro(pc.green(`Done! Your app is ready in ./${projectName}`));
 };
 
 main().catch((error: unknown) => {
