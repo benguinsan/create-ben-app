@@ -24,7 +24,7 @@ const TEXT_EXTENSIONS = new Set([
 
 const SKIP_DIR_NAMES = new Set([".git", ".next", "node_modules"]);
 
-export type FeatureId = "clerk-auth";
+export type FeatureId = "clerk-auth" | "docker";
 
 export type ScaffoldOptions = {
   projectName: string;
@@ -58,6 +58,13 @@ export const getFeatureTemplateDir = (featureId: FeatureId): string =>
 const shouldProcessAsText = (filePath: string): boolean => {
   const base = path.basename(filePath);
   if (base.startsWith(".env")) {
+    return true;
+  }
+  // Dockerfile has no extension but may contain {{placeholders}}
+  if (base === "Dockerfile" || base.startsWith("Dockerfile.")) {
+    return true;
+  }
+  if (base === ".dockerignore") {
     return true;
   }
   return TEXT_EXTENSIONS.has(path.extname(filePath).toLowerCase());

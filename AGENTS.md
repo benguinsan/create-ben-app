@@ -64,6 +64,7 @@ templates/
   posthog/           ← PostHog only (interactive opt-in)
   arcjet/            ← Arcjet only (interactive opt-in)
   coderabbit/        ← CodeRabbit only (interactive opt-in)
+  docker/            ← Docker only (interactive opt-in: “Would you like to use Docker?”)
   # further DX/SEO/theme modules follow the same rule: not in default unless CNA ships them
 ```
 
@@ -94,8 +95,8 @@ Priority order:
 
 1. **CLI** — `npx create-my-custom-app` entrypoint; interactive prompts with `@clack/prompts`; colored output with `picocolors`; progress with spinner; copy `default` + selected overlays; caveat messaging (`src/index.ts`)
 2. **`templates/default`** — keep it a **primitive Next.js** project equivalent to `npx create-next-app@latest` (no custom stack piled on)
-3. **Optional feature folders** under `templates/` — **A flat**, one tech per folder (`clerk-auth`, `oxlint-oxfmt`, `t3-env`, …); wired only via interactive selection
-4. Modular optional layers (auth, db, DX, observability, security, code review, SEO extras, theme)
+3. **Optional feature folders** under `templates/` — **A flat**, one tech per folder (`clerk-auth`, `oxlint-oxfmt`, `t3-env`, `docker`, …); wired only via interactive selection
+4. Modular optional layers (auth, db, DX, observability, security, code review, Docker, SEO extras, theme)
 5. AI coding agent instructions and stronger DX/theme — **opt-in**, not default
 
 Do not overbuild `default`. Features in the catalog below are **optional overlays**; never move them into `default` unless `create-next-app` itself ships them.
@@ -169,6 +170,7 @@ Prompt files live in the `prompts/` directory. Use names like:
 - `prompts/dx-oxlint-lefthook.md`
 - `prompts/sentry-posthog-arcjet.md`
 - `prompts/coderabbit.md`
+- `prompts/docker.md`
 
 Each prompt must include:
 
@@ -201,7 +203,7 @@ Keep these layers separate:
   - **Progress**: `ora` spinners for long steps (copy template, install deps, etc.)
   - **Scaffold engine**: `create-create-app` (or equivalent) for copy + `{{placeholder}}` substitution; merge `default` then selected feature folders
   - Optional `after` hooks and caveat / next-steps messaging
-- **Templates (A flat)**: `templates/default/` = primitive `create-next-app@latest` (always); overlays only when selected (`clerk-auth`, `drizzle-neon`, `t3-env`, `oxlint-oxfmt`, `rhf-zod`, `sentry`, `posthog`, `arcjet`, `coderabbit`, …)
+- **Templates (A flat)**: `templates/default/` = primitive `create-next-app@latest` (always); overlays only when selected (`clerk-auth`, `drizzle-neon`, `t3-env`, `oxlint-oxfmt`, `rhf-zod`, `sentry`, `posthog`, `arcjet`, `coderabbit`, `docker`, …)
 - **Package surface**: `bin` → built CLI; `files` includes `dist` + `templates` so npx can scaffold offline from the published package
 - **CLI dependencies** (this package, not the generated app): `@clack/prompts`, `picocolors`, `ora`, `create-create-app`
 
@@ -221,6 +223,7 @@ Keep these layers separate:
 - **DX**: Oxlint (Ultracite), Oxfmt, Lefthook, lint-staged, Commitlint
 - **Observability & security**: Sentry (+ Spotlight local), PostHog, Arcjet
 - **Release & ops**: Dependabot, GitHub Actions (typecheck + lint on PRs), CodeRabbit
+- **Container**: Docker (`Dockerfile`, `.dockerignore`, optional Compose) when the user confirms Docker
 - **SEO extras**: JSON-LD, richer Open Graph, `sitemap.xml`, `robots.txt` beyond CNA defaults
 - **Theme**: free minimalist theme / Lighthouse-oriented tokens — opt-in, not in `default`
 
@@ -268,7 +271,7 @@ Primitive Next.js only — stay aligned with **`npx create-next-app@latest`**:
 - Custom minimalist theme / Lighthouse pack
 - Extra SEO modules (JSON-LD, `sitemap`/`robots` beyond CNA)
 - Lefthook, lint-staged, Commitlint
-- Clerk, Drizzle/Neon, Sentry, PostHog, Arcjet, CodeRabbit, Dependabot, GHA app CI
+- Clerk, Drizzle/Neon, Sentry, PostHog, Arcjet, CodeRabbit, Docker, Dependabot, GHA app CI
 
 ## Auth (opt-in — `templates/clerk-auth`)
 
@@ -301,6 +304,13 @@ Primitive Next.js only — stay aligned with **`npx create-next-app@latest`**:
 - GitHub Actions: typecheck + lint on pull requests
 - CodeRabbit for AI-powered code reviews on PRs
 - Extra AI agent instruction files beyond what CNA ships
+
+## Container (opt-in — `templates/docker`)
+
+- Docker for local / production container builds of the Next.js app
+- Interactive confirm: **Would you like to use Docker?** (yes → copy overlay; no / skip → never copy)
+- Ship a production-oriented `Dockerfile`, `.dockerignore`, and short README notes; optional `docker-compose.yml` only if needed for that overlay
+- Do not bake Docker files into `templates/default`
 
 ## Out of scope for v1
 
@@ -358,6 +368,7 @@ Every optional feature is an independent **use / skip** choice. Ask via `@clack/
 | Analytics | PostHog **or** none | `posthog` | |
 | Security | Arcjet **or** none | `arcjet` | |
 | Code review | CodeRabbit **or** none | `coderabbit` | |
+| Docker | **Would you like to use Docker?** — yes **or** no | `docker` | `@clack/prompts` `confirm`; no / skip = no Docker overlay |
 
 Add the same use/skip pattern when these folders exist:
 
@@ -386,7 +397,7 @@ The product success criteria: **`npx create-my-custom-app <name>` produces your 
 Canonical create flow:
 
 1. User runs `npx create-my-custom-app <project-name>` (or local `node dist/cli.js <project-name>` while developing the CLI).
-2. CLI shows an intro via `@clack/prompts` and asks for feature/template choices (select, confirm, multiselect, text as needed). Style labels and summaries with `picocolors`.
+2. CLI shows an intro via `@clack/prompts` and asks for feature/template choices (select, confirm, multiselect, text as needed). Include Docker as a confirm: **Would you like to use Docker?** Style labels and summaries with `picocolors`.
 3. Start an `ora` spinner for long work (copying template, optional install).
 4. Scaffold step copies `templates/default` into `./<project-name>/`, overlays each selected `templates/<tech>/` folder, and substitutes placeholders such as `{{name}}` / `{{description}}`.
 5. Optional feature modules are included or omitted based on Clack answers/flags (when wired). Never invent nested `templates/features/`.

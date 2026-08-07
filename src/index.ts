@@ -11,17 +11,22 @@ const DEFAULT_DESCRIPTION = "A project created with create-my-custom-app";
 
 type AuthChoice = "clerk" | "none";
 
+const FLAG_VALUE_SKIP = new Set(["--auth"]);
+
 const getPositionalName = (): string | undefined => {
   const args = process.argv.slice(2);
   const positionals: string[] = [];
 
   for (let i = 0; i < args.length; i += 1) {
     const arg = args[i];
-    if (arg === "--auth") {
+    if (FLAG_VALUE_SKIP.has(arg)) {
       i += 1; // skip value
       continue;
     }
     if (arg.startsWith("--auth=")) {
+      continue;
+    }
+    if (arg === "--docker" || arg === "--no-docker") {
       continue;
     }
     if (arg.startsWith("-")) {
@@ -49,6 +54,25 @@ const getAuthFlag = (): AuthChoice | undefined => {
     }
   }
   return undefined;
+};
+
+const getDockerFlag = (): boolean | undefined => {
+  const args = process.argv.slice(2);
+  let docker: boolean | undefined;
+  for (const arg of args) {
+    if (arg === "--docker") {
+      docker = true;
+    } else if (arg === "--no-docker") {
+      docker = false;
+    }
+  }
+  if (args.includes("--docker") && args.includes("--no-docker")) {
+    console.error(
+      pc.red(`Cannot use both ${pc.bold("--docker")} and ${pc.bold("--no-docker")}.`),
+    );
+    process.exit(1);
+  }
+  return docker;
 };
 
 const resolveProjectName = async (): Promise<string> => {
@@ -129,27 +153,76 @@ const resolveAuthChoice = async (): Promise<AuthChoice> => {
   return answer;
 };
 
-const featuresForAuth = (auth: AuthChoice): FeatureId[] => {
-  if (auth === "clerk") {
-    return ["clerk-auth"];
+const resolveDockerChoice = async (): Promise<boolean> => {
+  const fromFlag = getDockerFlag();
+  if (fromFlag !== undefined) {
+    p.log.info(pc.dim(`Docker: ${fromFlag ? "yes" : "no"} (--docker/--no-docker)`));
+    return fromFlag;
   }
-  return [];
+
+  if (!process.stdin.isTTY) {
+    p.log.info(pc.dim("Non-interactive session: Docker set to no."));
+    return false;
+  }
+
+  const answer = await p.confirm({
+    message: "Would you like to use Docker?",
+    initialValue: false,
+  });
+
+  if (p.isCancel(answer)) {
+    p.cancel("Operation cancelled.");
+    process.exit(1);
+  }
+
+  return answer;
 };
 
-const nextStepsFor = (projectName: string, auth: AuthChoice): string => {
+const resolveFeatures = (auth: AuthChoice, useDocker: boolean): FeatureId[] => {
+  const features: FeatureId[] = [];
   if (auth === "clerk") {
-    return [
-      `cd ${projectName}`,
+    features.push("clerk-auth");
+  }
+  if (useDocker) {
+    features.push("docker");
+  }
+  return features;
+};
+
+const nextStepsFor = (
+  projectName: string,
+  auth: AuthChoice,
+  useDocker: boolean,
+): string => {
+  const lines: string[] = [`cd ${projectName}`];
+
+  if (auth === "clerk") {
+    lines.push(
       "cp .env.example .env.local",
       "Add Clerk keys from https://dashboard.clerk.com",
-      "npm install",
-      "npm run dev",
-      "",
-      "Optional: enable Magic Links, MFA, Social, Passkeys in the Clerk Dashboard.",
-    ].join("\n");
+    );
   }
 
-  return [`cd ${projectName}`, "npm install", "npm run dev"].join("\n");
+  lines.push("npm install", "npm run dev");
+
+  if (auth === "clerk") {
+    lines.push(
+      "",
+      "Optional: enable Magic Links, MFA, Social, Passkeys in the Clerk Dashboard.",
+    );
+  }
+
+  if (useDocker) {
+    lines.push(
+      "",
+      "Docker (production image; local npm run dev still works without it):",
+      `  npm run docker:build`,
+      `  npm run docker:run`,
+      "Pass runtime secrets with docker run -e / --env-file (do not bake .env into the image).",
+    );
+  }
+
+  return lines.join("\n");
 };
 
 const main = async (): Promise<void> => {
@@ -157,7 +230,8 @@ const main = async (): Promise<void> => {
 
   const projectName = await resolveProjectName();
   const auth = await resolveAuthChoice();
-  const features = featuresForAuth(auth);
+  const useDocker = await resolveDockerChoice();
+  const features = resolveFeatures(auth, useDocker);
   const targetDir = path.resolve(process.cwd(), projectName);
 
   const spinner = p.spinner();
@@ -176,7 +250,7 @@ const main = async (): Promise<void> => {
     throw error;
   }
 
-  p.note(nextStepsFor(projectName, auth), "Next steps");
+  p.note(nextStepsFor(projectName, auth, useDocker), "Next steps");
 
   p.outro(pc.green(`Done! Your app is ready in ./${projectName}`));
 };
