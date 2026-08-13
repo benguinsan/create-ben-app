@@ -56,21 +56,17 @@ npx create-my-custom-app <project-name>
 templates/
   default/           ← always copied — primitive Next.js ≈ `npx create-next-app@latest`
   clerk-auth/        ← Clerk only (interactive opt-in, skip/none = no auth)
-  drizzle-neon/      ← Drizzle + Neon only (interactive opt-in)
-  t3-env/            ← T3 Env (interactive opt-in)
   oxlint-oxfmt/      ← Oxlint + Oxfmt / Ultracite (interactive opt-in; replaces CNA linter if chosen)
+  t3-env/            ← T3 Env + Zod for type-safe env vars (interactive opt-in)
   rhf-zod/           ← React Hook Form + Zod (interactive opt-in)
-  sentry/            ← Sentry (+ Spotlight) (interactive opt-in)
-  posthog/           ← PostHog only (interactive opt-in)
-  arcjet/            ← Arcjet only (interactive opt-in)
   coderabbit/        ← CodeRabbit only (interactive opt-in)
   docker/            ← Docker only (interactive opt-in: “Would you like to use Docker?”)
-  # further DX/SEO/theme modules follow the same rule: not in default unless CNA ships them
+  # further DX/theme modules follow the same rule: not in default unless CNA ships them
 ```
 
 Rules:
 
-- **`templates/default` = primitive `create-next-app@latest` only.** Match what CNA scaffolds (App Router, TypeScript, Tailwind, import alias `@/*`, and whatever linter CNA chooses by default — typically ESLint). Do **not** bake Oxlint, Oxfmt, Ultracite, T3 Env, RHF, Zod, custom theme tokens, extra SEO (`sitemap`/`robots`/JSON-LD beyond CNA), Lefthook, Commitlint, or other add-ons into `default`.
+- **`templates/default` = primitive `create-next-app@latest` only.** Match what CNA scaffolds (App Router, TypeScript, Tailwind, import alias `@/*`, and whatever linter CNA chooses by default — typically ESLint). Do **not** bake Oxlint, Oxfmt, Ultracite, T3 Env, RHF, Zod, custom theme tokens, or other add-ons into `default`.
 - Anything **outside** stock `create-next-app` is an **optional feature folder** and is copied only when the user selects it in interactive prompts (or via future CLI flags).
 - **1 folder = 1 tech** (except `default` = CNA primitive).
 - Always copy `templates/default` → `./<project-name>/`, then overlay selected feature folders.
@@ -95,8 +91,8 @@ Priority order:
 
 1. **CLI** — `npx create-my-custom-app` entrypoint; interactive prompts with `@clack/prompts`; colored output with `picocolors`; progress with spinner; copy `default` + selected overlays; caveat messaging (`src/index.ts`)
 2. **`templates/default`** — keep it a **primitive Next.js** project equivalent to `npx create-next-app@latest` (no custom stack piled on)
-3. **Optional feature folders** under `templates/` — **A flat**, one tech per folder (`clerk-auth`, `oxlint-oxfmt`, `t3-env`, `docker`, …); wired only via interactive selection
-4. Modular optional layers (auth, db, DX, observability, security, code review, Docker, SEO extras, theme)
+3. **Optional feature folders** under `templates/` — **A flat**, one tech per folder (`clerk-auth`, `t3-env`, `oxlint-oxfmt`, `docker`, …); wired only via interactive selection
+4. Modular optional layers (auth, DX, CI, code review, Docker, theme)
 5. AI coding agent instructions and stronger DX/theme — **opt-in**, not default
 
 Do not overbuild `default`. Features in the catalog below are **optional overlays**; never move them into `default` unless `create-next-app` itself ships them.
@@ -129,29 +125,19 @@ Do not code before creating the prompt unless the user explicitly says to skip p
 Use only these skills (add paths under `.agents/skills/` as they are created):
 
 - `.agents/skills/clerk`
-- `.agents/skills/drizzle`
-- `.agents/skills/neon`
 - `.agents/skills/t3-env`
-- `.agents/skills/sentry`
-- `.agents/skills/posthog`
-- `.agents/skills/arcjet`
 - `.agents/skills/coderabbit`
 
 Use them for:
 
 - `node_modules/next/dist/docs/`: Next.js, App Router, server/client boundaries, API routes, metadata, caching
 - `clerk`: Sign up, Sign in, Sign out, Forgot/Reset password, Magic Links, MFA, Social Auth, Passkeys, User Impersonation
-- `drizzle`: schema, migrations (Drizzle Kit), queries, Drizzle Studio (PostgreSQL via Neon)
-- `neon`: hosted Postgres — connection strings, branching, production/remote DB for Drizzle
-- `t3-env`: type-safe environment variables
-- `sentry` / Spotlight: error monitoring (prod + local)
-- `posthog`: analytics
-- `arcjet`: security and bot protection
+- `t3-env`: type-safe environment variables validated with Zod (`@t3-oss/env-nextjs`)
 - `coderabbit`: AI-powered PR reviews via `.coderabbit.yaml` and GitHub app config
 
 Do not invent new skills.
 
-For React Hook Form, Zod, Tailwind, Oxlint/Oxfmt, Lefthook, and related DX tools, use existing project patterns, package docs, and `node_modules/next/dist/docs/`.
+For React Hook Form, Zod, Tailwind, Oxlint/Oxfmt, and related DX tools, use existing project patterns, package docs, and `node_modules/next/dist/docs/`.
 
 For the CLI interactive layer, use package docs for `@clack/prompts`, `picocolors`, and `ora` (no separate skill required unless one is added later).
 
@@ -166,9 +152,9 @@ Prompt files live in the `prompts/` directory. Use names like:
 - `prompts/cli-scaffolding.md`
 - `prompts/cli-interactive-prompts.md`
 - `prompts/clerk-auth.md`
-- `prompts/drizzle-neon.md`
-- `prompts/dx-oxlint-lefthook.md`
-- `prompts/sentry-posthog-arcjet.md`
+- `prompts/t3-env.md`
+- `prompts/oxlint-oxfmt.md`
+- `prompts/ci-github-actions.md`
 - `prompts/coderabbit.md`
 - `prompts/docker.md`
 
@@ -203,7 +189,7 @@ Keep these layers separate:
   - **Progress**: `ora` spinners for long steps (copy template, install deps, etc.)
   - **Scaffold engine**: `create-create-app` (or equivalent) for copy + `{{placeholder}}` substitution; merge `default` then selected feature folders
   - Optional `after` hooks and caveat / next-steps messaging
-- **Templates (A flat)**: `templates/default/` = primitive `create-next-app@latest` (always); overlays only when selected (`clerk-auth`, `drizzle-neon`, `t3-env`, `oxlint-oxfmt`, `rhf-zod`, `sentry`, `posthog`, `arcjet`, `coderabbit`, `docker`, …)
+- **Templates (A flat)**: `templates/default/` = primitive `create-next-app@latest` (always); overlays only when selected (`clerk-auth`, `t3-env`, `oxlint-oxfmt`, `rhf-zod`, `coderabbit`, `docker`, …)
 - **Package surface**: `bin` → built CLI; `files` includes `dist` + `templates` so npx can scaffold offline from the published package
 - **CLI dependencies** (this package, not the generated app): `@clack/prompts`, `picocolors`, `ora`, `create-create-app`
 
@@ -217,14 +203,12 @@ Keep these layers separate:
 **Only when selected interactively (feature folders):**
 
 - **Auth**: Clerk (server middleware, client components, protected routes)
-- **Database**: Drizzle schema + queries; Neon (PostgreSQL)
+- **Config**: T3 Env + Zod for type-safe environment variables
 - **Validation & forms**: Zod schemas + React Hook Form
-- **Config**: T3 Env, deeper VS Code debug/settings/tasks/extensions
-- **DX**: Oxlint (Ultracite), Oxfmt, Lefthook, lint-staged, Commitlint
-- **Observability & security**: Sentry (+ Spotlight local), PostHog, Arcjet
-- **Release & ops**: Dependabot, GitHub Actions (typecheck + lint on PRs), CodeRabbit
+- **DX**: Oxlint (Ultracite), Oxfmt
+- **CI**: GitHub Actions (typecheck + lint on PRs)
+- **Release & ops**: Dependabot (optional), CodeRabbit
 - **Container**: Docker (`Dockerfile`, `.dockerignore`, optional Compose) when the user confirms Docker
-- **SEO extras**: JSON-LD, richer Open Graph, `sitemap.xml`, `robots.txt` beyond CNA defaults
 - **Theme**: free minimalist theme / Lighthouse-oriented tokens — opt-in, not in `default`
 
 Rules:
@@ -266,12 +250,10 @@ Primitive Next.js only — stay aligned with **`npx create-next-app@latest`**:
 **Not in `default`** (add only via interactive feature selection):
 
 - Oxlint, Oxfmt, Ultracite
-- T3 Env
-- React Hook Form + Zod
+- T3 Env + Zod (env validation)
+- React Hook Form + Zod (forms)
 - Custom minimalist theme / Lighthouse pack
-- Extra SEO modules (JSON-LD, `sitemap`/`robots` beyond CNA)
-- Lefthook, lint-staged, Commitlint
-- Clerk, Drizzle/Neon, Sentry, PostHog, Arcjet, CodeRabbit, Docker, Dependabot, GHA app CI
+- Clerk, CodeRabbit, Docker, GitHub Actions CI, Dependabot
 
 ## Auth (opt-in — `templates/clerk-auth`)
 
@@ -280,28 +262,28 @@ Primitive Next.js only — stay aligned with **`npx create-next-app@latest`**:
 - MFA, Social Auth (Google, Facebook, Twitter, GitHub, Apple, and more)
 - User Impersonation
 
-## Data (opt-in — `templates/drizzle-neon`)
+## Config (opt-in — `templates/t3-env`)
 
-- DrizzleORM (PostgreSQL)
-- Neon for hosted / production database
-- Drizzle Studio + Drizzle Kit migrations
+- **T3 Env** (`@t3-oss/env-nextjs`) with **Zod** schemas for env validation
+- Single `src/env.ts` (or equivalent) as the source of truth for server/client env access
+- Fail fast at build/runtime when required vars are missing or invalid
+- Extend schemas when other overlays add env vars (e.g. Clerk keys from `clerk-auth`)
+- Do not hardcode secrets or read `process.env` ad hoc outside the env module
 
-## DX & git hygiene (opt-in)
+## DX (opt-in)
 
 - Oxlint with Ultracite preset + Oxfmt (`templates/oxlint-oxfmt`) — may replace CNA ESLint when selected
-- Lefthook (prefer over Husky), lint-staged, Commitlint
-- Deeper VS Code: Debug, Settings, Tasks, Extensions
 
-## Observability & security (opt-in)
+## CI (opt-in — `templates/github-actions`)
 
-- Sentry + Sentry Spotlight (local)
-- Arcjet (security / bot protection)
-- PostHog analytics
+- **GitHub Actions only** — no local git hooks
+- Workflow runs on pull requests (and pushes to the default branch): install → typecheck → lint → build
+- Respect whichever linter the app uses (CNA ESLint or Oxlint overlay)
+- Fully non-interactive; no secrets required for basic lint/typecheck/build
+- Optional: Dependabot config in the same overlay or repo root
 
 ## Release & maintenance (opt-in)
 
-- Dependabot (dependency updates)
-- GitHub Actions: typecheck + lint on pull requests
 - CodeRabbit for AI-powered code reviews on PRs
 - Extra AI agent instruction files beyond what CNA ships
 
@@ -318,12 +300,13 @@ Primitive Next.js only — stay aligned with **`npx create-next-app@latest`**:
 - PGlite / SQLite / MySQL multi-dialect
 - Vitest, Playwright, Storybook, visual regression, Codecov
 - LogTape, Better Stack, Checkly, Semantic Release, Knip, Bundler Analyzer, Commitizen
+- Local git hooks (Husky, lint-staged)
+- Extra SEO scaffolds (JSON-LD packs, `sitemap.xml` / `robots.txt` beyond CNA metadata)
 - Multi-tenancy, RBAC, Enterprise SSO/SAML/OIDC, Web3
 
 ## Do not use (unless explicitly requested)
 
-- Husky (prefer Lefthook when git-hooks feature is selected)
-- Supabase (use Neon + Drizzle + Clerk instead)
+- Husky, lint-staged (use GitHub Actions CI instead)
 - A separate backend framework outside Next.js App Router
 - Hidden proprietary wrappers that prevent editing generated code
 - Heavy UI kits that fight the unstyled/minimalist default
@@ -331,27 +314,7 @@ Primitive Next.js only — stay aligned with **`npx create-next-app@latest`**:
 
 ---
 
-# 7. Database source of truth
-
-Drizzle schema and migrations are the source of truth for app data.
-
-- Hosted / production: **Neon** (PostgreSQL)
-- Schema changes go through Drizzle Kit migrations — never hand-edit production DB as the primary path
-- Explore data with Drizzle Studio
-- Keep generated types and schema modules in sync after every migration
-
-Do not hardcode connection strings in application code. Use T3 Env / `.env` patterns when the T3 Env (or env) feature is selected; otherwise follow that feature’s docs.
-
-When the data layer changes, update:
-
-- Drizzle schema files
-- migrations
-- `.env.example`
-- any skills/docs that describe the schema
-
----
-
-# 8. Feature selection
+# 7. Feature selection
 
 Before implementing or expanding features, treat everything in section 6 **except Core (`templates/default`)** as **optional modules**.
 
@@ -360,24 +323,18 @@ Every optional feature is an independent **use / skip** choice. Ask via `@clack/
 | Prompt label | Choice | Template folder | Notes |
 |---|---|---|---|
 | Auth | Clerk **or** none | `clerk-auth` | Skip = no auth overlay |
-| Database | Drizzle + Neon **or** none | `drizzle-neon` | Skip = no DB overlay |
-| Env validation | T3 Env **or** none | `t3-env` | |
+| Env validation | T3 Env + Zod **or** none | `t3-env` | Type-safe `process.env` |
 | Forms | React Hook Form + Zod **or** none | `rhf-zod` | |
 | Linter / formatter | Oxlint + Oxfmt **or** keep CNA default | `oxlint-oxfmt` | When selected, replace CNA ESLint |
-| Error tracking | Sentry **or** none | `sentry` | Includes Spotlight for local |
-| Analytics | PostHog **or** none | `posthog` | |
-| Security | Arcjet **or** none | `arcjet` | |
 | Code review | CodeRabbit **or** none | `coderabbit` | |
 | Docker | **Would you like to use Docker?** — yes **or** no | `docker` | `@clack/prompts` `confirm`; no / skip = no Docker overlay |
+| CI | GitHub Actions **or** none | `github-actions` | typecheck + lint + build on PRs; no git hooks |
 
 Add the same use/skip pattern when these folders exist:
 
 | Prompt label | Choice | Template folder |
 |---|---|---|
-| Git hooks | Lefthook + lint-staged + Commitlint **or** none | e.g. `lefthook-commitlint` |
-| CI | GitHub Actions (typecheck + lint) **or** none | e.g. `github-actions` |
 | Dependency updates | Dependabot **or** none | e.g. `dependabot` |
-| SEO extras | JSON-LD / sitemap / robots beyond CNA **or** none | e.g. `seo-extras` |
 | Theme | Minimalist theme **or** none | e.g. `minimalist-theme` |
 
 If the user selects **nothing** optional, scaffold **only** `templates/default` — a primitive `create-next-app@latest`-equivalent project. Do **not** silently add Oxlint, T3 Env, or other non-CNA tooling.
@@ -390,7 +347,7 @@ Do not add out-of-scope v1 items (section 6) unless the user explicitly requests
 
 ---
 
-# 9. Correct scaffolding model
+# 8. Correct scaffolding model
 
 The product success criteria: **`npx create-my-custom-app <name>` produces your custom starter structure** and leaves a runnable Next.js app.
 
@@ -425,7 +382,7 @@ Rules:
 
 ---
 
-# 10. Template file rules
+# 9. Template file rules
 
 Generated / template code must be:
 
@@ -446,7 +403,7 @@ When a feature is optional, its files should be isolatable (folder or clearly na
 
 ---
 
-# 11. Authentication (Clerk)
+# 10. Authentication (Clerk)
 
 Clerk is the auth provider for Sign up, Sign in, Sign out, Forgot password, Reset password, and extended flows.
 
@@ -468,7 +425,7 @@ Rules:
 
 ---
 
-# 12. Forms and validation
+# 11. Forms and validation
 
 Use:
 
@@ -479,13 +436,13 @@ Validate at boundaries:
 
 - client form submit
 - server actions / route handlers
-- env (via T3 Env + Zod)
+- env (via T3 Env + Zod when the `t3-env` overlay is selected)
 
 Reject invalid input early. Prefer shared Zod schemas between client and server when shapes match.
 
 ---
 
-# 13. API and server action rules
+# 12. API and server action rules
 
 Prefer Next.js App Router patterns:
 
@@ -499,9 +456,9 @@ Keep route handlers thin — validation, auth check, call domain module, return 
 
 ---
 
-# 14. Secrets and environment variables
+# 13. Secrets and environment variables
 
-Canonical list lives in `.env.example`, validated by **T3 Env**.
+When **`t3-env`** is selected, the canonical env list lives in `.env.example` and is **validated by T3 Env + Zod** in `src/env.ts`. Without that overlay, document env vars in `.env.example` only.
 
 Only `NEXT_PUBLIC_*` values may reach browser code. Everything else is server-only.
 
@@ -510,10 +467,8 @@ Typical groups (extend as features are enabled):
 | Variable group | Purpose | Exposure |
 | --- | --- | --- |
 | `NEXT_PUBLIC_CLERK_*` / `CLERK_SECRET_KEY` | Clerk auth | public keys client+server; secret server only |
-| `DATABASE_URL` (Neon) | Drizzle / Neon Postgres | server only |
-| `SENTRY_*` / DSN | Error monitoring | server / build as documented by Sentry |
-| `NEXT_PUBLIC_POSTHOG_*` | Analytics | client+server as required |
-| Arcjet keys | Bot/security | server only |
+
+Do not hardcode connection strings or secrets in application code. Import from the T3 Env module when `t3-env` is enabled.
 
 Never expose service secrets to browser bundles.
 
@@ -521,17 +476,7 @@ Keep this table and `.env.example` in sync when variables change.
 
 ---
 
-# 15. Database connection
-
-- **Hosted / production**: Neon Postgres via `DATABASE_URL`
-- Migrations via Drizzle Kit against the Neon database
-- Document how to create a Neon project and set `DATABASE_URL` in `.env.local`
-- Prefer Neon branching for preview/ephemeral environments when needed
-- Do not introduce PGlite, SQLite, or MySQL unless the user explicitly expands scope
-
----
-
-# 16. Testing output after implementation
+# 14. Testing output after implementation
 
 After completing CLI, template, auth, db, or DX work, always share exact test steps.
 
@@ -546,70 +491,53 @@ For app features:
 
 - exact pages/routes to open
 - auth flows to click through
-- any manual checks for Sentry / PostHog / Arcjet when those modules are enabled
 
 Do not overcomplicate manual tests unless the implementation needs multi-service setup.
 
 ---
 
-# 17. CI/CD and automation
+# 15. CI/CD and automation
+
+**CI = GitHub Actions only.** Do not scaffold local git hooks.
 
 When CI-related work is in scope, deliver:
 
-- GitHub Actions: run lint and typecheck on pull requests
-- Dependabot for dependency updates
-- CodeRabbit: ship `.coderabbit.yaml` in the generated template and document installing the CodeRabbit GitHub App
+- **GitHub Actions** (`.github/workflows/ci.yml`): on `pull_request` and push to the default branch — `npm ci` → typecheck → lint → build
+- **Dependabot** (optional): weekly npm + github-actions updates
+- **CodeRabbit** (optional): `.coderabbit.yaml` in the generated template and docs for the GitHub App
+
+For the **CLI package** (this repo), CI covers the CLI itself (`typecheck` + `build`). For **generated apps**, CI lives in `templates/github-actions/` and is copied only when the user selects CI.
 
 CI must not require interactive prompts. Secrets belong in GitHub Actions secrets, not in the repo.
 
-Do not add Semantic Release, Checkly, or e2e CI unless the user explicitly expands scope.
+Do not add Semantic Release, Checkly, e2e CI, or local git hooks unless the user explicitly expands scope.
 
 ---
 
-# 18. Observability and security
-
-When enabled:
-
-- **Sentry** for production errors; **Spotlight** for local error monitoring
-- **PostHog** for product analytics
-- **Arcjet** for security and bot protection
-
-Rules:
-
-- Observability must not leak PII or secrets into third-party tools
-- Local Spotlight path should work without blocking `npm run dev`
-- Analytics / security helpers stay behind clear modules, easy to remove
-
----
-
-# 19. DX tooling and agent instructions
+# 16. DX tooling and agent instructions
 
 **Default (`templates/default`)** ships only what `create-next-app@latest` ships (including any upstream agent files).
 
 **Stronger DX is opt-in** via interactive feature selection / folders, for example:
 
 - Oxlint (Ultracite) + Oxfmt
-- Lefthook + lint-staged
-- Commitlint
-- Extra VS Code Debug / Settings / Tasks / Extensions
-- SEO extras: JSON-LD, Open Graph polish, `sitemap.xml`, `robots.txt`
+- T3 Env + Zod (type-safe environment variables)
+- GitHub Actions CI (typecheck + lint + build on PRs)
+- CodeRabbit (AI PR reviews)
 - Additional AI coding agent instruction files for Claude Code, Codex, Cursor, OpenCode, Copilot, and more
 
-Agent instruction files (when added) should point developers at the same philosophy: minimal `default`, editable everything, optional features clearly separated.
+Agent instruction files (when added) should point developers at the same philosophy: minimal `default`, editable everything, optional features clearly separated, CI in GitHub Actions not local hooks.
 
 ---
 
-# 20. Security, code standards, and final rule
+# 17. Security, code standards, and final rule
 
 Never expose to browser code:
 
 - Clerk secret key
-- Database credentials (`DATABASE_URL`)
-- Arcjet / Sentry auth tokens (except documented public DSNs)
 
 Never run privileged operations from browser code:
 
-- schema migrations
 - admin impersonation setup that requires secrets
 
 Use TypeScript strict mode.
@@ -632,9 +560,9 @@ When in doubt:
 
 ---
 
-# 21. Commands and checks
+# 18. Commands and checks
 
-"Run available checks" (sections 2 and 20) means running the applicable commands from the relevant package root (CLI repo and/or generated app) and reporting the results:
+"Run available checks" (sections 2 and 17) means running the applicable commands from the relevant package root (CLI repo and/or generated app) and reporting the results:
 
 ### CLI package (`create-my-custom-app` repo)
 
@@ -656,6 +584,5 @@ When in doubt:
 
 - `npm run typecheck` — if/when that script is added by a feature overlay
 - `npm run lint` / `format` — Oxlint / Oxfmt when `oxlint-oxfmt` (or similar) was selected
-- `npm run db:studio` / `npm run db:migrate` — when Drizzle/Neon was selected
 
 After CLI or template structure work, always verify a fresh scaffold of **default alone**. After feature overlays, run the checks that feature introduces. Report exact command output; do not claim a check passed without running it.
