@@ -24,7 +24,7 @@ const TEXT_EXTENSIONS = new Set([
 
 const SKIP_DIR_NAMES = new Set([".git", ".next", "node_modules"]);
 
-export type FeatureId = "clerk-auth" | "oxlint-oxfmt" | "docker";
+export type FeatureId = "clerk-auth" | "t3-env" | "oxlint-oxfmt" | "docker";
 
 export type ScaffoldOptions = {
   projectName: string;
@@ -316,6 +316,27 @@ const overlayFeature = async (
   await applyScaffoldRemovals(featureDir, targetDir);
 };
 
+const applyT3EnvClerkVariants = async (
+  targetDir: string,
+  features: FeatureId[],
+): Promise<void> => {
+  if (!features.includes("clerk-auth") || !features.includes("t3-env")) {
+    return;
+  }
+
+  const t3Dir = getFeatureTemplateDir("t3-env");
+  const envWithClerk = path.join(t3Dir, "src", "env.with-clerk.ts");
+  const envExampleWithClerk = path.join(t3Dir, ".env.example.with-clerk");
+
+  if (await pathExists(envWithClerk)) {
+    await fs.copyFile(envWithClerk, path.join(targetDir, "src", "env.ts"));
+  }
+
+  if (await pathExists(envExampleWithClerk)) {
+    await fs.copyFile(envExampleWithClerk, path.join(targetDir, ".env.example"));
+  }
+};
+
 export const scaffoldProject = async (
   options: ScaffoldOptions,
 ): Promise<void> => {
@@ -342,6 +363,8 @@ export const scaffoldProject = async (
   for (const featureId of features) {
     await overlayFeature(featureId, options.targetDir, placeholders);
   }
+
+  await applyT3EnvClerkVariants(options.targetDir, features);
 };
 
 /** @deprecated Use `scaffoldProject` */
