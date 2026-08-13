@@ -59,14 +59,13 @@ templates/
   oxlint-oxfmt/      ← Oxlint + Oxfmt / Ultracite (interactive opt-in; replaces CNA linter if chosen)
   t3-env/            ← T3 Env + Zod for type-safe env vars (interactive opt-in)
   rhf-zod/           ← React Hook Form + Zod (interactive opt-in)
-  coderabbit/        ← CodeRabbit only (interactive opt-in)
   docker/            ← Docker only (interactive opt-in: “Would you like to use Docker?”)
-  # further DX/theme modules follow the same rule: not in default unless CNA ships them
+  # further DX modules follow the same rule: not in default unless CNA ships them
 ```
 
 Rules:
 
-- **`templates/default` = primitive `create-next-app@latest` only.** Match what CNA scaffolds (App Router, TypeScript, Tailwind, import alias `@/*`, and whatever linter CNA chooses by default — typically ESLint). Do **not** bake Oxlint, Oxfmt, Ultracite, T3 Env, RHF, Zod, custom theme tokens, or other add-ons into `default`.
+- **`templates/default` = primitive `create-next-app@latest` only.** Match what CNA scaffolds (App Router, TypeScript, Tailwind, import alias `@/*`, and whatever linter CNA chooses by default — typically ESLint). Do **not** bake Oxlint, Oxfmt, Ultracite, T3 Env, RHF, Zod, or other add-ons into `default`. Keep CNA’s default look — no custom visual theme overlay.
 - Anything **outside** stock `create-next-app` is an **optional feature folder** and is copied only when the user selects it in interactive prompts (or via future CLI flags).
 - **1 folder = 1 tech** (except `default` = CNA primitive).
 - Always copy `templates/default` → `./<project-name>/`, then overlay selected feature folders.
@@ -92,8 +91,8 @@ Priority order:
 1. **CLI** — `npx create-my-custom-app` entrypoint; interactive prompts with `@clack/prompts`; colored output with `picocolors`; progress with spinner; copy `default` + selected overlays; caveat messaging (`src/index.ts`)
 2. **`templates/default`** — keep it a **primitive Next.js** project equivalent to `npx create-next-app@latest` (no custom stack piled on)
 3. **Optional feature folders** under `templates/` — **A flat**, one tech per folder (`clerk-auth`, `t3-env`, `oxlint-oxfmt`, `docker`, …); wired only via interactive selection
-4. Modular optional layers (auth, DX, CI, code review, Docker, theme)
-5. AI coding agent instructions and stronger DX/theme — **opt-in**, not default
+4. Modular optional layers (auth, DX, CI, Docker)
+5. AI coding agent instructions and stronger DX — **opt-in**, not default
 
 Do not overbuild `default`. Features in the catalog below are **optional overlays**; never move them into `default` unless `create-next-app` itself ships them.
 
@@ -126,14 +125,12 @@ Use only these skills (add paths under `.agents/skills/` as they are created):
 
 - `.agents/skills/clerk`
 - `.agents/skills/t3-env`
-- `.agents/skills/coderabbit`
 
 Use them for:
 
 - `node_modules/next/dist/docs/`: Next.js, App Router, server/client boundaries, API routes, metadata, caching
 - `clerk`: Sign up, Sign in, Sign out, Forgot/Reset password, Magic Links, MFA, Social Auth, Passkeys, User Impersonation
 - `t3-env`: type-safe environment variables validated with Zod (`@t3-oss/env-nextjs`)
-- `coderabbit`: AI-powered PR reviews via `.coderabbit.yaml` and GitHub app config
 
 Do not invent new skills.
 
@@ -155,7 +152,6 @@ Prompt files live in the `prompts/` directory. Use names like:
 - `prompts/t3-env.md`
 - `prompts/oxlint-oxfmt.md`
 - `prompts/ci-github-actions.md`
-- `prompts/coderabbit.md`
 - `prompts/docker.md`
 
 Each prompt must include:
@@ -189,7 +185,7 @@ Keep these layers separate:
   - **Progress**: `ora` spinners for long steps (copy template, install deps, etc.)
   - **Scaffold engine**: `create-create-app` (or equivalent) for copy + `{{placeholder}}` substitution; merge `default` then selected feature folders
   - Optional `after` hooks and caveat / next-steps messaging
-- **Templates (A flat)**: `templates/default/` = primitive `create-next-app@latest` (always); overlays only when selected (`clerk-auth`, `t3-env`, `oxlint-oxfmt`, `rhf-zod`, `coderabbit`, `docker`, …)
+- **Templates (A flat)**: `templates/default/` = primitive `create-next-app@latest` (always); overlays only when selected (`clerk-auth`, `t3-env`, `oxlint-oxfmt`, `rhf-zod`, `docker`, …)
 - **Package surface**: `bin` → built CLI; `files` includes `dist` + `templates` so npx can scaffold offline from the published package
 - **CLI dependencies** (this package, not the generated app): `@clack/prompts`, `picocolors`, `ora`, `create-create-app`
 
@@ -207,9 +203,7 @@ Keep these layers separate:
 - **Validation & forms**: Zod schemas + React Hook Form
 - **DX**: Oxlint (Ultracite), Oxfmt
 - **CI**: GitHub Actions (typecheck + lint on PRs)
-- **Release & ops**: Dependabot (optional), CodeRabbit
 - **Container**: Docker (`Dockerfile`, `.dockerignore`, optional Compose) when the user confirms Docker
-- **Theme**: free minimalist theme / Lighthouse-oriented tokens — opt-in, not in `default`
 
 Rules:
 
@@ -252,8 +246,7 @@ Primitive Next.js only — stay aligned with **`npx create-next-app@latest`**:
 - Oxlint, Oxfmt, Ultracite
 - T3 Env + Zod (env validation)
 - React Hook Form + Zod (forms)
-- Custom minimalist theme / Lighthouse pack
-- Clerk, CodeRabbit, Docker, GitHub Actions CI, Dependabot
+- Clerk, Docker, GitHub Actions CI
 
 ## Auth (opt-in — `templates/clerk-auth`)
 
@@ -280,11 +273,9 @@ Primitive Next.js only — stay aligned with **`npx create-next-app@latest`**:
 - Workflow runs on pull requests (and pushes to the default branch): install → typecheck → lint → build
 - Respect whichever linter the app uses (CNA ESLint or Oxlint overlay)
 - Fully non-interactive; no secrets required for basic lint/typecheck/build
-- Optional: Dependabot config in the same overlay or repo root
 
 ## Release & maintenance (opt-in)
 
-- CodeRabbit for AI-powered code reviews on PRs
 - Extra AI agent instruction files beyond what CNA ships
 
 ## Container (opt-in — `templates/docker`)
@@ -309,7 +300,7 @@ Primitive Next.js only — stay aligned with **`npx create-next-app@latest`**:
 - Husky, lint-staged (use GitHub Actions CI instead)
 - A separate backend framework outside Next.js App Router
 - Hidden proprietary wrappers that prevent editing generated code
-- Heavy UI kits that fight the unstyled/minimalist default
+- Heavy UI kits that fight the unstyled CNA default
 - Putting Oxlint/T3 Env/RHF/etc. into `templates/default` “for convenience”
 
 ---
@@ -326,18 +317,10 @@ Every optional feature is an independent **use / skip** choice. Ask via `@clack/
 | Env validation | T3 Env + Zod **or** none | `t3-env` | Type-safe `process.env` |
 | Forms | React Hook Form + Zod **or** none | `rhf-zod` | |
 | Linter / formatter | Oxlint + Oxfmt **or** keep CNA default | `oxlint-oxfmt` | When selected, replace CNA ESLint |
-| Code review | CodeRabbit **or** none | `coderabbit` | |
 | Docker | **Would you like to use Docker?** — yes **or** no | `docker` | `@clack/prompts` `confirm`; no / skip = no Docker overlay |
 | CI | GitHub Actions **or** none | `github-actions` | typecheck + lint + build on PRs; no git hooks |
 
-Add the same use/skip pattern when these folders exist:
-
-| Prompt label | Choice | Template folder |
-|---|---|---|
-| Dependency updates | Dependabot **or** none | e.g. `dependabot` |
-| Theme | Minimalist theme **or** none | e.g. `minimalist-theme` |
-
-If the user selects **nothing** optional, scaffold **only** `templates/default` — a primitive `create-next-app@latest`-equivalent project. Do **not** silently add Oxlint, T3 Env, or other non-CNA tooling.
+If the user selects **nothing** optional, scaffold **only** `templates/default` — a primitive `create-next-app@latest`-equivalent project. Do **not** silently add Oxlint, T3 Env, or other non-CNA tooling. Keep the CNA homepage and `globals.css` as shipped — no custom theme overlay.
 
 Do not install or scaffold features the user has excluded (skipped).
 
@@ -420,7 +403,7 @@ Rules:
 - Protect routes with Clerk middleware / server helpers
 - Keep secret keys server-only (`CLERK_SECRET_KEY`)
 - Only `NEXT_PUBLIC_*` Clerk values may reach the client
-- Auth UI stays minimal/unstyled unless the theme layer styles it
+- Auth UI stays minimal/unstyled (CNA default look)
 - Do not add a second auth system alongside Clerk
 
 ---
@@ -503,8 +486,6 @@ Do not overcomplicate manual tests unless the implementation needs multi-service
 When CI-related work is in scope, deliver:
 
 - **GitHub Actions** (`.github/workflows/ci.yml`): on `pull_request` and push to the default branch — `npm ci` → typecheck → lint → build
-- **Dependabot** (optional): weekly npm + github-actions updates
-- **CodeRabbit** (optional): `.coderabbit.yaml` in the generated template and docs for the GitHub App
 
 For the **CLI package** (this repo), CI covers the CLI itself (`typecheck` + `build`). For **generated apps**, CI lives in `templates/github-actions/` and is copied only when the user selects CI.
 
@@ -523,7 +504,6 @@ Do not add Semantic Release, Checkly, e2e CI, or local git hooks unless the user
 - Oxlint (Ultracite) + Oxfmt
 - T3 Env + Zod (type-safe environment variables)
 - GitHub Actions CI (typecheck + lint + build on PRs)
-- CodeRabbit (AI PR reviews)
 - Additional AI coding agent instruction files for Claude Code, Codex, Cursor, OpenCode, Copilot, and more
 
 Agent instruction files (when added) should point developers at the same philosophy: minimal `default`, editable everything, optional features clearly separated, CI in GitHub Actions not local hooks.
