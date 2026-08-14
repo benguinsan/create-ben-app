@@ -12,7 +12,7 @@ the CLI scaffolds **your custom project structure** from `templates/` into a new
 
 This repository has two parts:
 
-1. **CLI package** — `src/cli.ts` (built with `create-create-app`), published/run as `create-my-custom-app`; interactive UX with `@clack/prompts`, `picocolors`, and `ora`
+1. **CLI package** — `src/index.ts` (custom scaffold in `src/scaffold.ts`), published/run as `create-my-custom-app`; interactive UX with `@clack/prompts` and `picocolors`
 2. **Starter templates** — `templates/*` — the actual folder structure and files copied into the new app
 
 Your job is to understand the request, use the right project skills, create a clear implementation prompt, ask for approval, then implement. Prefer work that improves scaffolding DX: CLI prompts/flags, template layout, and a generated app that boots cleanly.
@@ -40,7 +40,7 @@ npx create-my-custom-app <project-name>
   src/index.ts
         │  @clack/prompts (questions — optional features)
         │  picocolors (colored output)
-        │  ora / Clack spinner (copy / install)
+        │  Clack spinner (copy / install)
         │  copy + {{placeholders}}
         ▼
   templates/default/     ← always copied (primitive create-next-app only)
@@ -136,7 +136,7 @@ Do not invent new skills.
 
 For React Hook Form, Zod, Tailwind, Oxlint/Oxfmt, and related DX tools, use existing project patterns, package docs, and `node_modules/next/dist/docs/`.
 
-For the CLI interactive layer, use package docs for `@clack/prompts`, `picocolors`, and `ora` (no separate skill required unless one is added later).
+For the CLI interactive layer, use package docs for `@clack/prompts` and `picocolors` (no separate skill required unless one is added later).
 
 Out of scope for v1 (do not add skills or scaffold unless the user explicitly asks later): i18n, PGlite, Vitest, Playwright, Storybook.
 
@@ -169,7 +169,7 @@ Each prompt must include:
 
 For UI tasks, also include visual interpretation, layout, typography, spacing, colors, responsiveness, and Lighthouse expectations.
 
-For CLI tasks, also include prompts/flags, `@clack/prompts` / `picocolors` / `ora` UX, template file mapping, and post-scaffold caveat messaging.
+For CLI tasks, also include prompts/flags, `@clack/prompts` / `picocolors` UX, template file mapping, and post-scaffold caveat messaging.
 
 ---
 
@@ -182,12 +182,12 @@ Keep these layers separate:
 - **CLI**: `src/index.ts` — entrypoint for `npx create-my-custom-app`
   - **Interactive prompts**: `@clack/prompts` (text, select, confirm, multiselect, cancel handling)
   - **Terminal styling**: `picocolors` for success/error/info/muted output
-  - **Progress**: `ora` spinners for long steps (copy template, install deps, etc.)
-  - **Scaffold engine**: `create-create-app` (or equivalent) for copy + `{{placeholder}}` substitution; merge `default` then selected feature folders
+  - **Progress**: `@clack/prompts` spinner for long steps (copy template, install deps, etc.)
+  - **Scaffold engine**: `src/scaffold.ts` for copy + `{{placeholder}}` substitution; merge `default` then selected feature folders
   - Optional `after` hooks and caveat / next-steps messaging
 - **Templates (A flat)**: `templates/default/` = primitive `create-next-app@latest` (always); overlays only when selected (`clerk-auth`, `t3-env`, `oxlint-oxfmt`, `rhf-zod`, `docker`, …)
 - **Package surface**: `bin` → built CLI; `files` includes `dist` + `templates` so npx can scaffold offline from the published package
-- **CLI dependencies** (this package, not the generated app): `@clack/prompts`, `picocolors`, `ora`, `create-create-app`
+- **CLI dependencies** (this package, not the generated app): `@clack/prompts`, `picocolors`
 
 ### Inside a generated app (from templates)
 
@@ -209,7 +209,7 @@ Rules:
 
 - The CLI’s job is to **materialize** `templates/` into a new project — not to hide structure behind opaque generators.
 - Keep `default` CNA-shaped; put every non-CNA concern in a feature folder and wire it through Clack selection.
-- Use `@clack/prompts` for all interactive questions; use `picocolors` for status text; use a spinner around async scaffold work. Prefer these over inventing a custom readline UI or relying on demo `create-create-app` `extra` prompts alone.
+- Use `@clack/prompts` for all interactive questions; use `picocolors` for status text; use a Clack spinner around async scaffold work. Prefer these over inventing a custom readline UI.
 - Handle cancel (`isCancel`) and exit cleanly with a clear message.
 - Generated apps must run with minimal code and clear boundaries.
 - Optional features must be easy to add or omit (CLI flags / template overlays) without rewriting the core.
@@ -222,13 +222,12 @@ Rules:
 
 ## CLI package (this repo)
 
-- `create-create-app` — template copy and `{{placeholder}}` substitution
-- `@clack/prompts` — interactive prompts (intro/outro, text, select, confirm, multiselect, cancel)
+- `@clack/prompts` — interactive prompts (intro/outro, text, select, confirm, multiselect, cancel, spinner)
 - `picocolors` — colored terminal output (labels, success, errors, hints)
-- `ora` — spinners for scaffold / install / long-running steps
-- TypeScript + `tsup` for building `dist/cli.js`
+- `src/scaffold.ts` — template copy and `{{placeholder}}` substitution
+- TypeScript + `tsup` for building `dist/index.js`
 
-Do not put `@clack/prompts`, `picocolors`, or `ora` in the **generated** app unless that app itself needs a CLI. They are dependencies of **create-my-custom-app** only.
+Do not put `@clack/prompts` or `picocolors` in the **generated** app unless that app itself needs a CLI. They are dependencies of **create-my-custom-app** only.
 
 ## Core (`templates/default`) — generated app
 
@@ -338,7 +337,7 @@ Canonical create flow:
 
 1. User runs `npx create-my-custom-app <project-name>` (or local `node dist/cli.js <project-name>` while developing the CLI).
 2. CLI shows an intro via `@clack/prompts` and asks for feature/template choices (select, confirm, multiselect, text as needed). Include Docker as a confirm: **Would you like to use Docker?** Style labels and summaries with `picocolors`.
-3. Start an `ora` spinner for long work (copying template, optional install).
+3. Start a Clack spinner for long work (copying template, optional install).
 4. Scaffold step copies `templates/default` into `./<project-name>/`, overlays each selected `templates/<tech>/` folder, and substitutes placeholders such as `{{name}}` / `{{description}}`.
 5. Optional feature modules are included or omitted based on Clack answers/flags (when wired). Never invent nested `templates/features/`.
 6. Stop the spinner; print success with `picocolors`; `outro` / caveat prints next steps (e.g. `cd`, `npm install`, copy `.env.example`, migrate, `npm run dev`).
@@ -360,7 +359,7 @@ Rules:
 - Never leave broken imports for omitted optional features.
 - Prefer deleting unused files over commenting them out.
 - Keep generated code minimal and readable — DX first.
-- Do not treat demo `create-create-app` `extra` prompts (e.g. OS picker leftovers) as product features; replace them with real starter choices driven by `@clack/prompts`.
+- Drive starter choices with `@clack/prompts`; do not invent leftover demo prompts.
 - Keep non-interactive / CI-friendly paths in mind later (flags that skip prompts); interactive mode is the default for humans.
 
 ---
@@ -466,7 +465,7 @@ After completing CLI, template, auth, db, or DX work, always share exact test st
 For CLI features:
 
 - exact command: `npx create-my-custom-app <project-name>` (and local `npm run build` + `node dist/cli.js <name>` while developing)
-- which `@clack/prompts` choices to make (and expected colored/`ora` feedback)
+- which `@clack/prompts` choices to make (and expected colored/spinner feedback)
 - confirm the generated folder matches the intended `templates/` structure
 - commands inside the generated app: install, env copy, migrate, `npm run dev`
 
