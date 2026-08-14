@@ -1,18 +1,18 @@
 # AGENTS.md
 
-You are a **principal-level full-stack engineer and AI implementation agent** working on **create-my-custom-app** — a **custom starter-template CLI**.
+You are a **principal-level full-stack engineer and AI implementation agent** working on **create-ben-app** — a **custom starter-template CLI**.
 
 Primary outcome: when someone runs:
 
 ```bash
-npx create-my-custom-app my-app
+npx create-ben-app my-app
 ```
 
 the CLI scaffolds **your custom project structure** from `templates/` into a new folder (prompts, placeholders, optional features, post-create next steps).
 
 This repository has two parts:
 
-1. **CLI package** — `src/index.ts` (custom scaffold in `src/scaffold.ts`), published/run as `create-my-custom-app`; interactive UX with `@clack/prompts` and `picocolors`
+1. **CLI package** — `src/index.ts` (custom scaffold in `src/scaffold.ts`), published/run as `create-ben-app`; interactive UX with `@clack/prompts` and `picocolors`
 2. **Starter templates** — `templates/*` — the actual folder structure and files copied into the new app
 
 Your job is to understand the request, use the right project skills, create a clear implementation prompt, ask for approval, then implement. Prefer work that improves scaffolding DX: CLI prompts/flags, template layout, and a generated app that boots cleanly.
@@ -29,12 +29,12 @@ This version has breaking changes — APIs, conventions, and file structure may 
 
 # 1. Product
 
-**create-my-custom-app** is a CLI that **builds a custom starter template** on demand. It is not a deployed Next.js product by itself — it is the tool that *creates* that product structure for developers.
+**create-ben-app** is a CLI that **builds a custom starter template** on demand. It is not a deployed Next.js product by itself — it is the tool that *creates* that product structure for developers.
 
 ## User-facing flow
 
 ```text
-npx create-my-custom-app <project-name>
+npx create-ben-app <project-name>
         │
         ▼
   src/index.ts
@@ -60,12 +60,13 @@ templates/
   t3-env/            ← T3 Env + Zod for type-safe env vars (interactive opt-in)
   rhf-zod/           ← React Hook Form + Zod (interactive opt-in)
   docker/            ← Docker only (interactive opt-in: “Would you like to use Docker?”)
+  terraform-aws/     ← Terraform AWS only (interactive opt-in: “Would you like to create AWS infrastructure with Terraform?”)
   # further DX modules follow the same rule: not in default unless CNA ships them
 ```
 
 Rules:
 
-- **`templates/default` = primitive `create-next-app@latest` only.** Match what CNA scaffolds (App Router, TypeScript, Tailwind, import alias `@/*`, and whatever linter CNA chooses by default — typically ESLint). Do **not** bake Oxlint, Oxfmt, Ultracite, T3 Env, RHF, Zod, or other add-ons into `default`. Keep CNA’s default look — no custom visual theme overlay.
+- **`templates/default` = primitive `create-next-app@latest` only.** Match what CNA scaffolds (App Router, TypeScript, Tailwind, import alias `@/*`, and whatever linter CNA chooses by default — typically ESLint). Do **not** bake Oxlint, Oxfmt, Ultracite, T3 Env, RHF, Zod, Docker, Terraform/AWS, or other add-ons into `default`. Keep CNA’s default look — no custom visual theme overlay.
 - Anything **outside** stock `create-next-app` is an **optional feature folder** and is copied only when the user selects it in interactive prompts (or via future CLI flags).
 - **1 folder = 1 tech** (except `default` = CNA primitive).
 - Always copy `templates/default` → `./<project-name>/`, then overlay selected feature folders.
@@ -88,10 +89,10 @@ Rules:
 
 Priority order:
 
-1. **CLI** — `npx create-my-custom-app` entrypoint; interactive prompts with `@clack/prompts`; colored output with `picocolors`; progress with spinner; copy `default` + selected overlays; caveat messaging (`src/index.ts`)
+1. **CLI** — `npx create-ben-app` entrypoint; interactive prompts with `@clack/prompts`; colored output with `picocolors`; progress with spinner; copy `default` + selected overlays; caveat messaging (`src/index.ts`)
 2. **`templates/default`** — keep it a **primitive Next.js** project equivalent to `npx create-next-app@latest` (no custom stack piled on)
-3. **Optional feature folders** under `templates/` — **A flat**, one tech per folder (`clerk-auth`, `t3-env`, `oxlint-oxfmt`, `docker`, …); wired only via interactive selection
-4. Modular optional layers (auth, DX, CI, Docker)
+3. **Optional feature folders** under `templates/` — **A flat**, one tech per folder (`clerk-auth`, `t3-env`, `oxlint-oxfmt`, `docker`, `terraform-aws`, …); wired only via interactive selection
+4. Modular optional layers (auth, DX, CI, Docker, Terraform AWS)
 5. AI coding agent instructions and stronger DX — **opt-in**, not default
 
 Do not overbuild `default`. Features in the catalog below are **optional overlays**; never move them into `default` unless `create-next-app` itself ships them.
@@ -153,6 +154,7 @@ Prompt files live in the `prompts/` directory. Use names like:
 - `prompts/oxlint-oxfmt.md`
 - `prompts/ci-github-actions.md`
 - `prompts/docker.md`
+- `prompts/terraform-aws.md`
 
 Each prompt must include:
 
@@ -179,13 +181,13 @@ Keep these layers separate:
 
 ### This repo (CLI + templates)
 
-- **CLI**: `src/index.ts` — entrypoint for `npx create-my-custom-app`
+- **CLI**: `src/index.ts` — entrypoint for `npx create-ben-app`
   - **Interactive prompts**: `@clack/prompts` (text, select, confirm, multiselect, cancel handling)
   - **Terminal styling**: `picocolors` for success/error/info/muted output
   - **Progress**: `@clack/prompts` spinner for long steps (copy template, install deps, etc.)
   - **Scaffold engine**: `src/scaffold.ts` for copy + `{{placeholder}}` substitution; merge `default` then selected feature folders
   - Optional `after` hooks and caveat / next-steps messaging
-- **Templates (A flat)**: `templates/default/` = primitive `create-next-app@latest` (always); overlays only when selected (`clerk-auth`, `t3-env`, `oxlint-oxfmt`, `rhf-zod`, `docker`, …)
+- **Templates (A flat)**: `templates/default/` = primitive `create-next-app@latest` (always); overlays only when selected (`clerk-auth`, `t3-env`, `oxlint-oxfmt`, `rhf-zod`, `docker`, `terraform-aws`, …)
 - **Package surface**: `bin` → built CLI; `files` includes `dist` + `templates` so npx can scaffold offline from the published package
 - **CLI dependencies** (this package, not the generated app): `@clack/prompts`, `picocolors`
 
@@ -204,6 +206,7 @@ Keep these layers separate:
 - **DX**: Oxlint (Ultracite), Oxfmt
 - **CI**: GitHub Actions (typecheck + lint on PRs)
 - **Container**: Docker (`Dockerfile`, `.dockerignore`, optional Compose) when the user confirms Docker
+- **Infrastructure**: Terraform AWS (`terraform/environment/{dev,prod}` + `terraform/modules/{s3,ec2,cloudfront}`) when the user confirms Terraform
 
 Rules:
 
@@ -227,7 +230,7 @@ Rules:
 - `src/scaffold.ts` — template copy and `{{placeholder}}` substitution
 - TypeScript + `tsup` for building `dist/index.js`
 
-Do not put `@clack/prompts` or `picocolors` in the **generated** app unless that app itself needs a CLI. They are dependencies of **create-my-custom-app** only.
+Do not put `@clack/prompts` or `picocolors` in the **generated** app unless that app itself needs a CLI. They are dependencies of **create-ben-app** only.
 
 ## Core (`templates/default`) — generated app
 
@@ -245,7 +248,7 @@ Primitive Next.js only — stay aligned with **`npx create-next-app@latest`**:
 - Oxlint, Oxfmt, Ultracite
 - T3 Env + Zod (env validation)
 - React Hook Form + Zod (forms)
-- Clerk, Docker, GitHub Actions CI
+- Clerk, Docker, Terraform/AWS, GitHub Actions CI
 
 ## Auth (opt-in — `templates/clerk-auth`)
 
@@ -284,6 +287,13 @@ Primitive Next.js only — stay aligned with **`npx create-next-app@latest`**:
 - Ship a production-oriented `Dockerfile`, `.dockerignore`, and short README notes; optional `docker-compose.yml` only if needed for that overlay
 - Do not bake Docker files into `templates/default`
 
+## Infrastructure (opt-in — `templates/terraform-aws`)
+
+- Terraform for a **simple AWS** starter: **S3** (private assets), **EC2** (Next.js origin), **CloudFront** (CDN)
+- Interactive confirm: **Would you like to create AWS infrastructure with Terraform?** (yes → copy overlay; no / skip → never copy)
+- Layout: `terraform/environment/dev` and `terraform/environment/prod` (separate state) wire shared modules `terraform/modules/s3`, `terraform/modules/ec2`, `terraform/modules/cloudfront` (each module has `main.tf`, `variables.tf`, `outputs.tf`)
+- Do not bake Terraform / AWS files into `templates/default`
+
 ## Out of scope for v1
 
 - i18n (next-intl, Crowdin, i18n-check)
@@ -300,7 +310,7 @@ Primitive Next.js only — stay aligned with **`npx create-next-app@latest`**:
 - A separate backend framework outside Next.js App Router
 - Hidden proprietary wrappers that prevent editing generated code
 - Heavy UI kits that fight the unstyled CNA default
-- Putting Oxlint/T3 Env/RHF/etc. into `templates/default` “for convenience”
+- Putting Oxlint/T3 Env/RHF/Docker/Terraform/etc. into `templates/default` “for convenience”
 
 ---
 
@@ -317,6 +327,7 @@ Every optional feature is an independent **use / skip** choice. Ask via `@clack/
 | Forms | React Hook Form + Zod **or** none | `rhf-zod` | |
 | Linter / formatter | Oxlint + Oxfmt **or** keep CNA default | `oxlint-oxfmt` | When selected, replace CNA ESLint |
 | Docker | **Would you like to use Docker?** — yes **or** no | `docker` | `@clack/prompts` `confirm`; no / skip = no Docker overlay |
+| Terraform (AWS) | **Would you like to create AWS infrastructure with Terraform?** — yes **or** no | `terraform-aws` | `@clack/prompts` `confirm`; S3 + EC2 + CloudFront; `environment/dev` + `environment/prod`; no / skip = no Terraform overlay |
 | CI | GitHub Actions **or** none | `github-actions` | typecheck + lint + build on PRs; no git hooks |
 
 If the user selects **nothing** optional, scaffold **only** `templates/default` — a primitive `create-next-app@latest`-equivalent project. Do **not** silently add Oxlint, T3 Env, or other non-CNA tooling. Keep the CNA homepage and `globals.css` as shipped — no custom theme overlay.
@@ -331,12 +342,12 @@ Do not add out-of-scope v1 items (section 6) unless the user explicitly requests
 
 # 8. Correct scaffolding model
 
-The product success criteria: **`npx create-my-custom-app <name>` produces your custom starter structure** and leaves a runnable Next.js app.
+The product success criteria: **`npx create-ben-app <name>` produces your custom starter structure** and leaves a runnable Next.js app.
 
 Canonical create flow:
 
-1. User runs `npx create-my-custom-app <project-name>` (or local `node dist/cli.js <project-name>` while developing the CLI).
-2. CLI shows an intro via `@clack/prompts` and asks for feature/template choices (select, confirm, multiselect, text as needed). Include Docker as a confirm: **Would you like to use Docker?** Style labels and summaries with `picocolors`.
+1. User runs `npx create-ben-app <project-name>` (or local `node dist/cli.js <project-name>` while developing the CLI).
+2. CLI shows an intro via `@clack/prompts` and asks for feature/template choices (select, confirm, multiselect, text as needed). Include Docker as a confirm: **Would you like to use Docker?** Include Terraform as a confirm: **Would you like to create AWS infrastructure with Terraform?** Style labels and summaries with `picocolors`.
 3. Start a Clack spinner for long work (copying template, optional install).
 4. Scaffold step copies `templates/default` into `./<project-name>/`, overlays each selected `templates/<tech>/` folder, and substitutes placeholders such as `{{name}}` / `{{description}}`.
 5. Optional feature modules are included or omitted based on Clack answers/flags (when wired). Never invent nested `templates/features/`.
@@ -464,7 +475,7 @@ After completing CLI, template, auth, db, or DX work, always share exact test st
 
 For CLI features:
 
-- exact command: `npx create-my-custom-app <project-name>` (and local `npm run build` + `node dist/cli.js <name>` while developing)
+- exact command: `npx create-ben-app <project-name>` (and local `npm run build` + `node dist/cli.js <name>` while developing)
 - which `@clack/prompts` choices to make (and expected colored/spinner feedback)
 - confirm the generated folder matches the intended `templates/` structure
 - commands inside the generated app: install, env copy, migrate, `npm run dev`
@@ -503,6 +514,7 @@ Do not add Semantic Release, Checkly, e2e CI, or local git hooks unless the user
 - Oxlint (Ultracite) + Oxfmt
 - T3 Env + Zod (type-safe environment variables)
 - GitHub Actions CI (typecheck + lint + build on PRs)
+- Terraform AWS (S3 + EC2 + CloudFront; `environment/dev` + `environment/prod`)
 - Additional AI coding agent instruction files for Claude Code, Codex, Cursor, OpenCode, Copilot, and more
 
 Agent instruction files (when added) should point developers at the same philosophy: minimal `default`, editable everything, optional features clearly separated, CI in GitHub Actions not local hooks.
@@ -543,12 +555,12 @@ When in doubt:
 
 "Run available checks" (sections 2 and 17) means running the applicable commands from the relevant package root (CLI repo and/or generated app) and reporting the results:
 
-### CLI package (`create-my-custom-app` repo)
+### CLI package (`create-ben-app` repo)
 
 - `npm run build` — bundle the CLI (`tsup` → `dist/cli.js`)
 - `npm run dev` — watch mode for CLI development
 - Smoke scaffold (after build), e.g. `node dist/cli.js smoke-app` or `npx . smoke-app` — confirm `templates/` structure lands in the new folder
-- End-user shape to document: `npx create-my-custom-app <project-name>`
+- End-user shape to document: `npx create-ben-app <project-name>`
 
 ### Generated app (after scaffold)
 
@@ -563,5 +575,6 @@ When in doubt:
 
 - `npm run typecheck` — if/when that script is added by a feature overlay
 - `npm run lint` / `format` — Oxlint / Oxfmt when `oxlint-oxfmt` (or similar) was selected
+- `npm run tf:init:dev` / `tf:plan:dev` / `tf:apply:dev` / `tf:destroy:dev` (and `:prod`) — when `terraform-aws` was selected; requires Terraform + AWS credentials. Do not apply in CI.
 
 After CLI or template structure work, always verify a fresh scaffold of **default alone**. After feature overlays, run the checks that feature introduces. Report exact command output; do not claim a check passed without running it.

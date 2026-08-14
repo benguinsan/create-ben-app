@@ -2,7 +2,7 @@
 
 ## Goal
 
-Implement the **first interactive step** of `create-my-custom-app`: ask **“What will your project be called?”** via `@clack/prompts`, validate the name, handle cancel, and leave a clear handoff for later scaffold steps. Do **not** wire template copy, feature selection, git/install, or flags in this slice.
+Implement the **first interactive step** of `create-ben-app`: ask **“What will your project be called?”** via `@clack/prompts`, validate the name, handle cancel, and leave a clear handoff for later scaffold steps. Do **not** wire template copy, feature selection, git/install, or flags in this slice.
 
 ## Skills read
 

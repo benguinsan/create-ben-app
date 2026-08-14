@@ -6,9 +6,9 @@ import path from "node:path";
  */
 export const PKG_ROOT = path.resolve(__dirname, "..");
 
-export const PACKAGE_NAME = "create-my-custom-app";
+export const PACKAGE_NAME = "create-ben-app";
 export const DEFAULT_APP_NAME = "my-app";
-export const DEFAULT_DESCRIPTION = "A project created with create-my-custom-app";
+export const DEFAULT_DESCRIPTION = "A project created with create-ben-app";
 
 export const TITLE_TEXT = `
   __  ____   __      _    ____  ____
