@@ -1,36 +1,98 @@
-# Create My Custom App
+<h1 align="center">
+  create-my-custom-app
+</h1>
 
-A custom starter templates
+<p align="center">
+  Interactive CLI to scaffold a custom Next.js starter.
+</p>
 
-> created by [create-create-app](https://github.com/uetchy/create-create-app).
+<p align="center">
+  Get started by running <code>npx create-my-custom-app@latest my-app</code>
+</p>
 
-## Usage
+<div align="center">
+
+[![PRs-Welcome][contribute-image]][contribute-url] [![NPM version][npm-image]][npm-url]
+[![Downloads][downloads-image]][npm-url]
+
+</div>
+
+## Table of contents
+
+- <a href="#about">About</a>
+- <a href="#getting-started">Getting Started</a>
+- <a href="#options">Options</a>
+
+<h2 id="about">About</h2>
+
+`create-my-custom-app` is a CLI that generates a Next.js app from `templates/`. The default is a primitive [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app) project (App Router, TypeScript, Tailwind). Optional pieces are overlays you opt into — skip them and you only get the default.
+
+Each overlay is one folder, one tech. Unselected features are never copied. Generated files are yours to edit or delete.
+
+Requires **Node.js 24+** and **npm**.
+
+### Optional features
+
+| Prompt | Choice |
+| --- | --- |
+| Auth | [Clerk](https://clerk.com) or none |
+| Env validation | [T3 Env](https://env.t3.gg) + Zod or none |
+| Linter / formatter | Oxlint + Oxfmt or ESLint (CNA default) |
+| Docker | yes or no |
+
+<h2 id="getting-started">Getting Started</h2>
+
+Run one of these and answer the prompts:
+
+### npm
 
 ```bash
-npx create-my-custom-app <name>
+npx create-my-custom-app@latest my-app
 ```
 
-## Template string reference
+### yarn
 
-> Don't forget to remove this before publishing your package!
+```bash
+yarn create my-custom-app my-app
+```
 
-- {{name}} => create-my-custom-app
-- {{upper name}} => CREATE-MY-CUSTOM-APP
-- {{lower name}} => create-my-custom-app
-- {{capital name}} => CreateMyCustomApp
-- {{capital name space=true}} => Create My Custom App
-- {{camel name}} => createMyCustomApp
-- {{snake name}} => create_my_custom_app
-- {{kebab name}} => create-my-custom-app
-- {{space name}} => create my custom app
-- {{uuid}} => 7992018e-42c0-443f-afa3-bd70d04a5a34
-- {{upper (uuid)}} => 3F2B964D-4BBD-4772-B81F-5229E14F2AF1
-- {{description}} => A custom starter templates
-- {{author}} => BenguinSan
-- {{email}} => nguyenthanhphuc311203@gmail.com
-- {{contact}} => BenguinSan <nguyenthanhphuc311203@gmail.com>
-- {{license}} => MIT
-- {{year}} => 2026
-- {{custom}} =>  (undefined until it is defined in `extra` field in `create` function arguments)
+### pnpm
 
-See https://github.com/uetchy/create-create-app#template for the further details.
+```bash
+pnpm create my-custom-app my-app
+```
+
+### bun
+
+```bash
+bun create my-custom-app my-app
+```
+
+Then:
+
+```bash
+cd my-app
+npm install
+npm run dev
+```
+
+<h2 id="options">Options</h2>
+
+Skip prompts with flags (useful in CI):
+
+```bash
+npx create-my-custom-app my-app --auth none --env none --linter eslint --no-docker
+```
+
+| Flag | Values |
+| --- | --- |
+| `--auth` | `clerk` \| `none` |
+| `--env` | `t3` \| `none` |
+| `--linter` | `oxlint` \| `eslint` |
+| `--docker` / `--no-docker` | include or skip Docker |
+
+[downloads-image]: https://img.shields.io/npm/dm/create-my-custom-app?color=364fc7&logoColor=364fc7
+[npm-url]: https://www.npmjs.com/package/create-my-custom-app
+[npm-image]: https://img.shields.io/npm/v/create-my-custom-app?color=0b7285&logoColor=0b7285
+[contribute-url]: https://github.com/benguinsan/create-ben-app
+[contribute-image]: https://img.shields.io/badge/PRs-welcome-blue.svg
