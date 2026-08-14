@@ -2,12 +2,15 @@
 import path from "node:path";
 import * as p from "@clack/prompts";
 import pc from "picocolors";
+import {
+  DEFAULT_APP_NAME,
+  DEFAULT_DESCRIPTION,
+  PACKAGE_NAME,
+  TITLE_TEXT,
+  WELCOME_TAGLINE,
+} from "./consts";
 import { type FeatureId, scaffoldProject } from "./scaffold";
 import { validateProjectName } from "./validate-name";
-
-const PACKAGE_NAME = "create-my-custom-app";
-const DEFAULT_APP_NAME = "my-app";
-const DEFAULT_DESCRIPTION = "A project created with create-my-custom-app";
 
 type AuthChoice = "clerk" | "none";
 type EnvChoice = "t3" | "none";
@@ -376,7 +379,14 @@ const nextStepsFor = (
   return lines.join("\n");
 };
 
+const printWelcome = (): void => {
+  console.log(pc.cyan(TITLE_TEXT));
+  console.log(pc.dim(`  ${WELCOME_TAGLINE}`));
+  console.log();
+};
+
 const main = async (): Promise<void> => {
+  printWelcome();
   p.intro(pc.bgCyan(pc.black(` ${PACKAGE_NAME} `)));
 
   const projectName = await resolveProjectName();

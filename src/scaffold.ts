@@ -1,5 +1,6 @@
 import fs from "node:fs/promises";
 import path from "node:path";
+import { PKG_ROOT } from "./consts";
 
 const TEXT_EXTENSIONS = new Set([
   ".cjs",
@@ -49,13 +50,11 @@ type PackageJson = {
 
 const SCAFFOLD_RM_FILE = ".scaffold-rm";
 
-const getPackageRoot = (): string => path.resolve(__dirname, "..");
-
 export const getDefaultTemplateDir = (): string =>
-  path.join(getPackageRoot(), "templates", "default");
+  path.join(PKG_ROOT, "templates", "default");
 
 export const getFeatureTemplateDir = (featureId: FeatureId): string =>
-  path.join(getPackageRoot(), "templates", featureId);
+  path.join(PKG_ROOT, "templates", featureId);
 
 const shouldProcessAsText = (filePath: string): boolean => {
   const base = path.basename(filePath);

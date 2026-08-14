@@ -38,7 +38,7 @@ Never commit real secrets. Never import `CLERK_SECRET_KEY` into client component
 - `auth()` is async — always `await auth()`.
 - Prefer resource-level protection (`auth.protect()` on pages / server actions / route handlers). Avoid deprecated `createRouteMatcher` for auth gates.
 - Magic Links, MFA, Social Auth, Passkeys, Impersonation → configure in the **Clerk Dashboard**, not a second auth library.
-- Keep UI minimal/unstyled unless a theme overlay styles it.
+- Keep UI minimal/unstyled (CNA default look).
 
 ## Docs
 
