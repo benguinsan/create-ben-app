@@ -18,6 +18,8 @@ const TEXT_EXTENSIONS = new Set([
   ".svg",
   ".ts",
   ".tsx",
+  ".tf",
+  ".tfvars",
   ".txt",
   ".yaml",
   ".yml",
@@ -25,7 +27,12 @@ const TEXT_EXTENSIONS = new Set([
 
 const SKIP_DIR_NAMES = new Set([".git", ".next", "node_modules"]);
 
-export type FeatureId = "clerk-auth" | "t3-env" | "oxlint-oxfmt" | "docker";
+export type FeatureId =
+  | "clerk-auth"
+  | "t3-env"
+  | "oxlint-oxfmt"
+  | "docker"
+  | "terraform-aws";
 
 export type ScaffoldOptions = {
   projectName: string;

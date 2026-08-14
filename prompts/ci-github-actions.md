@@ -2,7 +2,7 @@
 
 ## Goal
 
-Add non-interactive CI for the **create-my-custom-app** CLI package repo: GitHub Actions on pull requests (and pushes to the default branch) plus Dependabot for dependency updates. Match AGENTS.md §17 without expanding into Semantic Release, Checkly, e2e, or generated-app template CI.
+Add non-interactive CI for the **create-ben-app** CLI package repo: GitHub Actions on pull requests (and pushes to the default branch) plus Dependabot for dependency updates. Match AGENTS.md §17 without expanding into Semantic Release, Checkly, e2e, or generated-app template CI.
 
 ## Skills read
 

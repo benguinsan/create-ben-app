@@ -4,7 +4,7 @@
 
 This is a [Next.js](https://nextjs.org) project bootstrapped with
 [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app)
-via **create-my-custom-app**, with optional **Clerk** authentication.
+via **create-ben-app**, with optional **Clerk** authentication.
 
 ## Getting Started
 

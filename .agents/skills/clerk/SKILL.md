@@ -1,6 +1,6 @@
 ---
 name: clerk
-description: Clerk authentication overlay for create-my-custom-app (templates/clerk-auth) and generated Next.js App Router apps.
+description: Clerk authentication overlay for create-ben-app (templates/clerk-auth) and generated Next.js App Router apps.
 ---
 
 # Clerk auth skill

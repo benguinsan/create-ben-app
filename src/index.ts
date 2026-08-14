@@ -34,6 +34,9 @@ const getPositionalName = (): string | undefined => {
     if (arg === "--docker" || arg === "--no-docker") {
       continue;
     }
+    if (arg === "--terraform" || arg === "--no-terraform") {
+      continue;
+    }
     if (arg.startsWith("-")) {
       continue;
     }
@@ -117,6 +120,27 @@ const getDockerFlag = (): boolean | undefined => {
     process.exit(1);
   }
   return docker;
+};
+
+const getTerraformFlag = (): boolean | undefined => {
+  const args = process.argv.slice(2);
+  let terraform: boolean | undefined;
+  for (const arg of args) {
+    if (arg === "--terraform") {
+      terraform = true;
+    } else if (arg === "--no-terraform") {
+      terraform = false;
+    }
+  }
+  if (args.includes("--terraform") && args.includes("--no-terraform")) {
+    console.error(
+      pc.red(
+        `Cannot use both ${pc.bold("--terraform")} and ${pc.bold("--no-terraform")}.`,
+      ),
+    );
+    process.exit(1);
+  }
+  return terraform;
 };
 
 const resolveProjectName = async (): Promise<string> => {
@@ -296,11 +320,41 @@ const resolveDockerChoice = async (): Promise<boolean> => {
   return answer;
 };
 
+const resolveTerraformChoice = async (): Promise<boolean> => {
+  const fromFlag = getTerraformFlag();
+  if (fromFlag !== undefined) {
+    p.log.info(
+      pc.dim(
+        `Terraform (AWS): ${fromFlag ? "yes" : "no"} (--terraform/--no-terraform)`,
+      ),
+    );
+    return fromFlag;
+  }
+
+  if (!process.stdin.isTTY) {
+    p.log.info(pc.dim("Non-interactive session: Terraform (AWS) set to no."));
+    return false;
+  }
+
+  const answer = await p.confirm({
+    message: "Would you like to create AWS infrastructure with Terraform?",
+    initialValue: false,
+  });
+
+  if (p.isCancel(answer)) {
+    p.cancel("Operation cancelled.");
+    process.exit(1);
+  }
+
+  return answer;
+};
+
 const resolveFeatures = (
   auth: AuthChoice,
   env: EnvChoice,
   linter: LinterChoice,
   useDocker: boolean,
+  useTerraform: boolean,
 ): FeatureId[] => {
   const features: FeatureId[] = [];
   if (auth === "clerk") {
@@ -311,6 +365,9 @@ const resolveFeatures = (
   }
   if (useDocker) {
     features.push("docker");
+  }
+  if (useTerraform) {
+    features.push("terraform-aws");
   }
   if (env === "t3") {
     features.push("t3-env");
@@ -324,6 +381,7 @@ const nextStepsFor = (
   env: EnvChoice,
   linter: LinterChoice,
   useDocker: boolean,
+  useTerraform: boolean,
 ): string => {
   const lines: string[] = [`cd ${projectName}`];
 
@@ -376,6 +434,19 @@ const nextStepsFor = (
     );
   }
 
+  if (useTerraform) {
+    lines.push(
+      "",
+      "Terraform / AWS (optional; local npm run dev does not require AWS):",
+      "  Configure credentials: aws configure   (or AWS_PROFILE) — never commit keys",
+      "  Start with the dev environment (prod is a separate stack / state):",
+      "    cp terraform/environment/dev/terraform.tfvars.example terraform/environment/dev/terraform.tfvars",
+      "    npm run tf:init:dev && npm run tf:plan:dev && npm run tf:apply:dev",
+      "  Tear down the same environment with npm run tf:destroy:dev",
+      "  Applying both dev and prod creates two billable stacks (S3, EC2, CloudFront).",
+    );
+  }
+
   return lines.join("\n");
 };
 
@@ -394,7 +465,8 @@ const main = async (): Promise<void> => {
   const env = await resolveEnvChoice();
   const linter = await resolveLinterChoice();
   const useDocker = await resolveDockerChoice();
-  const features = resolveFeatures(auth, env, linter, useDocker);
+  const useTerraform = await resolveTerraformChoice();
+  const features = resolveFeatures(auth, env, linter, useDocker, useTerraform);
   const targetDir = path.resolve(process.cwd(), projectName);
 
   const spinner = p.spinner();
@@ -413,7 +485,7 @@ const main = async (): Promise<void> => {
     throw error;
   }
 
-  p.note(nextStepsFor(projectName, auth, env, linter, useDocker), "Next steps");
+  p.note(nextStepsFor(projectName, auth, env, linter, useDocker, useTerraform), "Next steps");
 
   p.outro(pc.green(`Done! Your app is ready in ./${projectName}`));
 };
