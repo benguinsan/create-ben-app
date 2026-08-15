@@ -13,11 +13,11 @@ Copied only when the user selects Clerk. Never bake into `templates/default`.
 
 | Path | Role |
 |------|------|
-| `src/proxy.ts` | Next.js 16+ auth boundary (`clerkMiddleware` + matcher). Use `middleware.ts` only if Next ≤15. |
-| `src/app/layout.tsx` | `ClerkProvider` **inside** `<body>`; header with `Show` / `SignInButton` / `SignUpButton` / `UserButton` |
-| `src/app/sign-in/[[...sign-in]]/page.tsx` | `<SignIn />` |
-| `src/app/sign-up/[[...sign-up]]/page.tsx` | `<SignUp />` |
-| `src/app/dashboard/page.tsx` | Example protected page via `await auth.protect()` |
+| `proxy.ts` | Next.js 16+ auth boundary (`clerkMiddleware` + matcher). Use `middleware.ts` only if Next ≤15. |
+| `app/layout.tsx` | `ClerkProvider` **inside** `<body>`; header with `Show` / `SignInButton` / `SignUpButton` / `UserButton` |
+| `app/sign-in/[[...sign-in]]/page.tsx` | `<SignIn />` |
+| `app/sign-up/[[...sign-up]]/page.tsx` | `<SignUp />` |
+| `app/dashboard/page.tsx` | Example protected page via `await auth.protect()` |
 | `.env.example` | Clerk key placeholders |
 | `package.json` | Merges `@clerk/nextjs` into the generated app |
 

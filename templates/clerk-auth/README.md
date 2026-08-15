@@ -28,8 +28,8 @@ controls, or visit `/sign-in` and `/sign-up`. `/dashboard` requires a signed-in 
 
 - Publishable key: `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` (client + server)
 - Secret key: `CLERK_SECRET_KEY` (**server only** — never expose to the browser)
-- Boundary: `src/proxy.ts` (`clerkMiddleware`) for Next.js 16+
-- Example protected page: `src/app/dashboard/page.tsx` (`auth.protect()`)
+- Boundary: `proxy.ts` (`clerkMiddleware`) for Next.js 16+
+- Example protected page: `app/dashboard/page.tsx` (`auth.protect()`)
 
 Magic Links, MFA, Social Auth, Passkeys, and User Impersonation are configured in the
 Clerk Dashboard — not as a second auth system in this app.

@@ -239,7 +239,7 @@ const resolveEnvChoice = async (): Promise<EnvChoice> => {
       {
         value: "t3" as const,
         label: "T3 Env + Zod",
-        hint: "Type-safe process.env via src/env.ts",
+        hint: "Type-safe process.env via env.ts",
       },
       {
         value: "none" as const,
@@ -391,7 +391,7 @@ const nextStepsFor = (
 
   if (env === "t3") {
     lines.push(
-      "Add env vars in .env.local; extend schemas in src/env.ts for new variables",
+      "Add env vars in .env.local; extend schemas in env.ts for new variables",
     );
   }
 
