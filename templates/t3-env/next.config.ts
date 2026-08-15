@@ -1,6 +1,6 @@
 import { existsSync } from "node:fs";
 
-import "./src/env";
+import "./env";
 
 import type { NextConfig } from "next";
 

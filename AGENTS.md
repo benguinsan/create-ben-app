@@ -260,7 +260,7 @@ Primitive Next.js only — stay aligned with **`npx create-next-app@latest`**:
 ## Config (opt-in — `templates/t3-env`)
 
 - **T3 Env** (`@t3-oss/env-nextjs`) with **Zod** schemas for env validation
-- Single `src/env.ts` (or equivalent) as the source of truth for server/client env access
+- Single `env.ts` (or equivalent) as the source of truth for server/client env access
 - Fail fast at build/runtime when required vars are missing or invalid
 - Extend schemas when other overlays add env vars (e.g. Clerk keys from `clerk-auth`)
 - Do not hardcode secrets or read `process.env` ad hoc outside the env module
@@ -451,7 +451,7 @@ Keep route handlers thin — validation, auth check, call domain module, return 
 
 # 13. Secrets and environment variables
 
-When **`t3-env`** is selected, the canonical env list lives in `.env.example` and is **validated by T3 Env + Zod** in `src/env.ts`. Without that overlay, document env vars in `.env.example` only.
+When **`t3-env`** is selected, the canonical env list lives in `.env.example` and is **validated by T3 Env + Zod** in `env.ts`. Without that overlay, document env vars in `.env.example` only.
 
 Only `NEXT_PUBLIC_*` values may reach browser code. Everything else is server-only.
 

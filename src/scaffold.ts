@@ -57,6 +57,10 @@ type PackageJson = {
 
 const SCAFFOLD_RM_FILE = ".scaffold-rm";
 
+/** npm pack strips `.gitignore`; templates ship `gitignore` and we restore the dot on copy. */
+const toDestinationName = (sourceName: string): string =>
+  sourceName === "gitignore" ? ".gitignore" : sourceName;
+
 export const getDefaultTemplateDir = (): string =>
   path.join(PKG_ROOT, "templates", "default");
 
@@ -73,6 +77,9 @@ const shouldProcessAsText = (filePath: string): boolean => {
     return true;
   }
   if (base === ".dockerignore") {
+    return true;
+  }
+  if (base === "gitignore" || base === ".gitignore") {
     return true;
   }
   return TEXT_EXTENSIONS.has(path.extname(filePath).toLowerCase());
@@ -215,7 +222,10 @@ const copyDir = async (
     }
 
     const sourcePath = path.join(sourceDir, entry.name);
-    const targetName = applyPlaceholders(entry.name, placeholders);
+    const targetName = applyPlaceholders(
+      toDestinationName(entry.name),
+      placeholders,
+    );
     const targetPath = path.join(targetDir, targetName);
 
     if (entry.isDirectory()) {
@@ -331,11 +341,11 @@ const applyT3EnvClerkVariants = async (
   }
 
   const t3Dir = getFeatureTemplateDir("t3-env");
-  const envWithClerk = path.join(t3Dir, "src", "env.with-clerk.ts");
+  const envWithClerk = path.join(t3Dir, "env.with-clerk.ts");
   const envExampleWithClerk = path.join(t3Dir, ".env.example.with-clerk");
 
   if (await pathExists(envWithClerk)) {
-    await fs.copyFile(envWithClerk, path.join(targetDir, "src", "env.ts"));
+    await fs.copyFile(envWithClerk, path.join(targetDir, "env.ts"));
   }
 
   if (await pathExists(envExampleWithClerk)) {

@@ -14,7 +14,7 @@ npm run dev
 
 Open [http://localhost:3000](http://localhost:3000) with your browser.
 
-You can start editing the page by modifying `src/app/page.tsx`.
+You can start editing the page by modifying `app/page.tsx`.
 
 ## Learn More
 
