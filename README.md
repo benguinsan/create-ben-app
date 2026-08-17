@@ -7,7 +7,7 @@
 </p>
 
 <p align="center">
-  Get started by running <code>npx create-ben-app@latest my-app</code>
+  Get started by running <code>npx create-benguin-app@latest my-app</code>
 </p>
 
 <!-- <div align="center">
