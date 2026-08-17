@@ -1,5 +1,5 @@
 <h1 align="center">
-  create-ben-app
+  create-benguin-app
 </h1>
 
 <p align="center">
@@ -25,7 +25,7 @@
 
 <h2 id="about">About</h2>
 
-`create-ben-app` is a CLI that generates a Next.js app from `templates/`. The default is a primitive [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app) project (App Router, TypeScript, Tailwind). Optional pieces are overlays you opt into — skip them and you only get the default.
+`create-benguin-app` is a CLI that generates a Next.js app from `templates/`. The default is a primitive [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app) project (App Router, TypeScript, Tailwind). Optional pieces are overlays you opt into — skip them and you only get the default.
 
 Each overlay is one folder, one tech. Unselected features are never copied. Generated files are yours to edit or delete.
 
@@ -48,25 +48,25 @@ Run one of these and answer the prompts:
 ### npm
 
 ```bash
-npx create-ben-app@latest my-app
+npx create-benguin-app@latest my-app
 ```
 
 ### yarn
 
 ```bash
-yarn create ben-app my-app
+yarn create benguin-app my-app
 ```
 
 ### pnpm
 
 ```bash
-pnpm create ben-app my-app
+pnpm create benguin-app my-app
 ```
 
 ### bun
 
 ```bash
-bun create ben-app my-app
+bun create benguin-app my-app
 ```
 
 Then:
@@ -82,7 +82,7 @@ npm run dev
 Skip prompts with flags (useful in CI):
 
 ```bash
-npx create-ben-app my-app --auth none --env none --linter eslint --no-docker --no-terraform
+npx create-benguin-app my-app --auth none --env none --linter eslint --no-docker --no-terraform
 ```
 
 | Flag | Values |
@@ -93,8 +93,8 @@ npx create-ben-app my-app --auth none --env none --linter eslint --no-docker --n
 | `--docker` / `--no-docker` | include or skip Docker |
 | `--terraform` / `--no-terraform` | include or skip Terraform AWS (S3 + EC2 + CloudFront) |
 
-[downloads-image]: https://img.shields.io/npm/dm/create-ben-app?color=364fc7&logoColor=364fc7
-[npm-url]: https://www.npmjs.com/package/create-ben-app
-[npm-image]: https://img.shields.io/npm/v/create-ben-app?color=0b7285&logoColor=0b7285
+[downloads-image]: https://img.shields.io/npm/dm/create-benguin-app?color=364fc7&logoColor=364fc7
+[npm-url]: https://www.npmjs.com/package/create-benguin-app
+[npm-image]: https://img.shields.io/npm/v/create-benguin-app?color=0b7285&logoColor=0b7285
 [contribute-url]: https://github.com/benguinsan/create-ben-app
 [contribute-image]: https://img.shields.io/badge/PRs-welcome-blue.svg
