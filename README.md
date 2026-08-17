@@ -10,12 +10,12 @@
   Get started by running <code>npx create-ben-app@latest my-app</code>
 </p>
 
-<div align="center">
+<!-- <div align="center">
 
 [![PRs-Welcome][contribute-image]][contribute-url] [![NPM version][npm-image]][npm-url]
 [![Downloads][downloads-image]][npm-url]
 
-</div>
+</div> -->
 
 ## Table of contents
 
@@ -93,8 +93,8 @@ npx create-benguin-app my-app --auth none --env none --linter eslint --no-docker
 | `--docker` / `--no-docker` | include or skip Docker |
 | `--terraform` / `--no-terraform` | include or skip Terraform AWS (S3 + EC2 + CloudFront) |
 
-[downloads-image]: https://img.shields.io/npm/dm/create-benguin-app?color=364fc7&logoColor=364fc7
+<!-- [downloads-image]: https://img.shields.io/npm/dm/create-benguin-app?color=364fc7&logoColor=364fc7
 [npm-url]: https://www.npmjs.com/package/create-benguin-app
 [npm-image]: https://img.shields.io/npm/v/create-benguin-app?color=0b7285&logoColor=0b7285
 [contribute-url]: https://github.com/benguinsan/create-ben-app
-[contribute-image]: https://img.shields.io/badge/PRs-welcome-blue.svg
+[contribute-image]: https://img.shields.io/badge/PRs-welcome-blue.svg -->
