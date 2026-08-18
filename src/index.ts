@@ -202,7 +202,7 @@ const resolveAuthChoice = async (): Promise<AuthChoice> => {
       {
         value: "clerk" as const,
         label: "Clerk",
-        hint: "Sign in / Sign up / protected routes",
+        hint: "Plumbing + official skills; no Sign in pages",
       },
       {
         value: "none" as const,
@@ -404,6 +404,7 @@ const nextStepsFor = (
   if (auth === "clerk") {
     lines.push(
       "",
+      "Auth UI is not scaffolded. Use official Clerk Skills in .agents/skills (start with /clerk).",
       "Optional: enable Magic Links, MFA, Social, Passkeys in the Clerk Dashboard.",
     );
   }
@@ -411,7 +412,7 @@ const nextStepsFor = (
   if (env === "t3") {
     lines.push(
       "",
-      "Env (T3 Env + Zod): import { env } from \"@/env\" instead of process.env",
+      "Env (T3 Env + Zod): import { env } from \"@/env\" instead of process.env. Follow https://env.t3.gg/docs/nextjs.",
     );
   }
 
