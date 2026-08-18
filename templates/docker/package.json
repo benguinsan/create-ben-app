@@ -1,5 +1,7 @@
 {
   "scripts": {
+    "docker:up": "docker compose up --build",
+    "docker:down": "docker compose down",
     "docker:build": "docker build -t {{name}} .",
     "docker:run": "docker run --rm -p 3000:3000 {{name}}"
   }

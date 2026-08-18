@@ -427,10 +427,11 @@ const nextStepsFor = (
   if (useDocker) {
     lines.push(
       "",
-      "Docker (production image; local npm run dev still works without it):",
-      `  npm run docker:build`,
-      `  npm run docker:run`,
-      "Pass runtime secrets with docker run -e / --env-file (do not bake .env into the image).",
+      "Docker (Compose live reload; host npm run dev still works without it):",
+      "  npm run docker:up",
+      "  Open http://localhost:3000",
+      "  npm run docker:down",
+      "Next.js reads .env.local from the bind mount (do not bake secrets into the image).",
     );
   }
 
