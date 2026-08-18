@@ -1,5 +1,7 @@
 # Feature — T3 Env + Zod (type-safe environment variables)
 
+> **Current (skills):** T3 Env has **no** official agent skill. Do **not** add `templates/t3-env/.agents/`. Use [env.t3.gg/docs/nextjs](https://env.t3.gg/docs/nextjs). `AGENTS.md` §3.
+
 ## Goal
 
 Add optional **T3 Env + Zod** as an A-flat overlay: `templates/t3-env/`, interactive Env validation choice (**T3 Env + Zod** **or** none), and scaffold merge so selecting T3 Env overlays onto `templates/default` (and any other selected features). Generated apps get `src/env.ts` validated with `@t3-oss/env-nextjs`, `.env.example` as the canonical env list, and build-time validation via `next.config.ts`. Skipping leaves no T3 Env deps or `src/env.ts`.

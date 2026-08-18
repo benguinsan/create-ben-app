@@ -35,7 +35,7 @@ Requires **Node.js 24+** and **npm**.
 
 | Prompt | Choice |
 | --- | --- |
-| Auth | [Clerk](https://clerk.com) or none |
+| Auth | [Clerk](https://clerk.com) or none (plumbing + official skills; no Sign in pages) |
 | Env validation | [T3 Env](https://env.t3.gg) + Zod or none |
 | Linter / formatter | Oxlint + Oxfmt or ESLint (CNA default) |
 | Docker | yes or no |

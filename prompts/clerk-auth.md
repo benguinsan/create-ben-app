@@ -1,5 +1,9 @@
 # Feature — Authentication (Clerk)
 
+> **Superseded — do not implement this file as-is.** `AGENTS.md` wins if anything below conflicts.
+>
+> **Current overlay (`templates/clerk-auth/`):** plumbing only — `@clerk/nextjs`, `.env.example`, `proxy.ts`, README, `skills-lock.json`. **No** `app/` (no `ClerkProvider`, no `/sign-in`, `/sign-up`, `/dashboard`). Official Clerk Skills are copied verbatim into `.agents/skills/` (and `.claude/skills/`); inventory in `skills-lock.json` / `AGENTS.md` §3. Do **not** invent a pointer/`SKILL.md`. After scaffold, generated-app agents start with `/clerk`. T3 Env has **no** `.agents/` (no official skill).
+
 ## Goal
 
 Add optional **Clerk authentication** as an A-flat overlay: `templates/clerk-auth/`, interactive Auth select (Clerk **or** none), and scaffold merge so selecting Clerk overlays onto `templates/default` without baking auth into the CNA primitive. Generated apps get minimal Sign in / Sign up / Sign out UI, middleware/proxy protection hooks, `.env.example` keys, and next-step caveats. Skipping Auth leaves a pure `default` scaffold.
