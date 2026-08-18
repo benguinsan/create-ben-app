@@ -1,7 +1,7 @@
 {
   "name": "create-benguin-app",
   "description": "A custom starter templates",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "author": "BenguinSan <nguyenthanhphuc311203@gmail.com>",
   "scripts": {
     "build": "tsup",
